@@ -1,0 +1,1211 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CardVault Decision Tables</title>
+  <style>
+    :root {
+      --bg: #f5f2ea;
+      --paper: #fffdf8;
+      --ink: #1f2937;
+      --muted: #5f6b7a;
+      --line: #d8d1c2;
+      --accent: #0f766e;
+      --accent-soft: #dff4f1;
+      --header: #12343b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, #eee6d7 0%, var(--bg) 100%);
+    }
+    .page {
+      max-width: 980px;
+      margin: 32px auto 56px;
+      background: var(--paper);
+      padding: 48px 52px 64px;
+      box-shadow: 0 16px 60px rgba(18, 52, 59, 0.10);
+      border: 1px solid rgba(18, 52, 59, 0.08);
+    }
+    h1, h2, h3 {
+      color: var(--header);
+      page-break-after: avoid;
+    }
+    h1 {
+      font-size: 34px;
+      margin: 0 0 10px;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--accent);
+      letter-spacing: 0.01em;
+    }
+    h2 {
+      margin-top: 34px;
+      font-size: 24px;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+    }
+    h3 {
+      margin-top: 24px;
+      font-size: 18px;
+    }
+    p, li {
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    p {
+      margin: 10px 0;
+    }
+    ul {
+      margin: 8px 0 14px 22px;
+    }
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      background: #f1eee6;
+      border: 1px solid #e2dccd;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      font-size: 0.92em;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.1rem 0.42rem;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      border: 1px solid transparent;
+    }
+    .badge.green {
+      background: #e4f4ea;
+      color: #166534;
+      border-color: #b7ddc5;
+    }
+    .badge.yellow {
+      background: #fbf1cc;
+      color: #92400e;
+      border-color: #ead794;
+    }
+    .badge.red {
+      background: #f8d9d7;
+      color: #991b1b;
+      border-color: #e9b4af;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 18px;
+      page-break-inside: avoid;
+    }
+    thead th {
+      background: var(--accent-soft);
+      color: var(--header);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: top;
+      text-align: left;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    tbody tr:nth-child(even) td {
+      background: rgba(18, 52, 59, 0.03);
+    }
+    .meta {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 22px;
+    }
+    @media print {
+      body {
+        background: white;
+      }
+      .page {
+        margin: 0;
+        max-width: none;
+        box-shadow: none;
+        border: none;
+        padding: 0;
+      }
+      h2 {
+        page-break-after: avoid;
+      }
+      table, tr, td, th {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="meta">Prepared from the current local repository checkout at <code>/home/chris/cardvault</code>.</div>
+    <h1>CardVault Holistic Logic Audit</h1>
+
+<h2>0. Executive Summary</h2>
+
+<p>My high-level assessment:</p>
+
+<table>
+<thead><tr><th>Area</th><th>Estimated share</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>Sound foundation, worth keeping</td><td>65%</td><td><span class="badge green">GREEN</span></td></tr>
+<tr><td>Usable but approximate or under-modeled</td><td>25%</td><td><span class="badge yellow">YELLOW</span></td></tr>
+<tr><td>Materially flawed and should be fixed soon</td><td>10%</td><td><span class="badge red">RED</span></td></tr>
+</tbody></table>
+
+<p>Plain-English summary:</p>
+<ul>
+<li>this project does not need a restart</li>
+<li>it has a solid enough foundation to rehabilitate</li>
+<li>the main weaknesses are structural and semantic, not total architectural failure</li>
+</ul>
+
+<p>What is solid:</p>
+<ul>
+<li>the project shape</li>
+<li>the deadline model</li>
+<li>the general card/store structure</li>
+<li>the alert engine</li>
+<li>the basic formulas themselves</li>
+</ul>
+
+<p>What is not solid:</p>
+<ul>
+<li>source-of-truth consistency</li>
+<li>sync integrity</li>
+<li>confidence labeling for estimated numbers</li>
+<li>some recommendation semantics</li>
+</ul>
+
+<p>My recommendation:</p>
+<ul>
+<li>do not start over</li>
+<li>fix the logic model in place</li>
+<li>preserve the current app structure</li>
+<li>refactor the trust boundaries</li>
+</ul>
+
+<h3>0.1 Should the developer restart or repair?</h3>
+
+<p>Answer:</p>
+<ul>
+<li>repair, do not restart</li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>the app already contains domain structure, useful UI flows, persistence wiring, and business concepts that would be expensive to recreate</li>
+<li>most issues are from inconsistency and approximation, not from an irredeemable architecture</li>
+</ul>
+
+<p>Restart only makes sense if:</p>
+<ul>
+<li>the product scope changes dramatically</li>
+<li>the team wants to replace the entire household/rewards model</li>
+<li>the current code proves impossible to test or reason about after targeted cleanup</li>
+</ul>
+
+<p>That is not the case from what I reviewed.</p>
+
+<h3>0.2 What would it take for an LLM to get this back on track?</h3>
+
+<p>Answer:</p>
+<ul>
+<li>very feasible, if the work is staged correctly</li>
+</ul>
+
+<p>An LLM could likely get this back on track in 3 phases:</p>
+
+<table>
+<thead><tr><th>Phase</th><th>Goal</th><th>LLM suitability</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>unify logic and source-of-truth rules</td><td>high</td></tr>
+<tr><td>2</td><td>repair sync correctness and add scenario tests</td><td>high</td></tr>
+<tr><td>3</td><td>improve recommendation quality and semantic labeling</td><td>high</td></tr>
+</tbody></table>
+
+<p>Likely LLM-enabled repair plan:</p>
+
+<p>1. Inventory all displayed metrics and map them to current source data.</p>
+<p>2. Introduce a canonical balance-resolution layer.</p>
+<p>3. Refactor dashboard totals to use canonical logic.</p>
+<p>4. Repair cloud-sync empty-state and per-scope initialization bugs.</p>
+<p>5. Add scenario tests around household, loyalty balances, and deletes.</p>
+<p>6. Add confidence labels to derived outputs.</p>
+<p>7. Reword misleading labels like &quot;portfolio value&quot; and &quot;lifetime signup bonus value.&quot;</p>
+<p>8. Improve recommendation logic only after trust in source data is restored.</p>
+
+<p>Expected effort for an LLM with good repo access:</p>
+<ul>
+<li>audit + plan: low</li>
+<li>implementation of the highest-value fixes: moderate</li>
+<li>test hardening and UI explanation improvements: moderate</li>
+</ul>
+
+<p>Net:</p>
+<ul>
+<li>this is a strong candidate for iterative LLM-assisted repair</li>
+<li>it is not a good candidate for wholesale re-generation from scratch</li>
+</ul>
+
+<h3>0.3 Overall project health judgment</h3>
+
+<p>Current health:</p>
+<ul>
+<li>foundation: solid</li>
+<li>trustworthiness of displayed numbers: mixed</li>
+<li>maintainability: fair, but needs clearer source-of-truth rules</li>
+<li>recommendation quality: acceptable for heuristics, not yet strong enough for high-confidence advice</li>
+</ul>
+
+<p>Bottom line:</p>
+<ul>
+<li>the project is closer to &quot;promising but inconsistent&quot; than &quot;broken&quot;</li>
+</ul>
+
+<p>This document is the opinionated version of the logic report.</p>
+
+<p>Purpose:</p>
+<ul>
+<li>explain the logic in business terms</li>
+<li>identify what is mathematically sound</li>
+<li>identify what is heuristic or internally inconsistent</li>
+<li>recommend improvements and explain why they matter</li>
+</ul>
+
+<p>Color key:</p>
+<ul>
+<li><span class="badge green">GREEN</span> = logic is coherent and appropriate for the current product</li>
+<li><span class="badge yellow">YELLOW</span> = logic is understandable but approximate, brittle, or incomplete</li>
+<li><span class="badge red">RED</span> = logic is likely to mislead users or create incorrect outputs</li>
+</ul>
+
+<h2>1. Executive View</h2>
+
+<p>CardVault is not a heavy financial-modeling system.</p>
+
+<p>At a high level, the product is:</p>
+<ul>
+<li>a household card inventory</li>
+<li>a deadline engine</li>
+<li>a valuation engine based on static CPP assumptions</li>
+<li>a recommendation engine driven by thresholds</li>
+<li>a cloud sync layer that decides what data the formulas see</li>
+</ul>
+
+<p>The biggest project-level truth:</p>
+<ul>
+<li>most &quot;math issues&quot; here are not advanced math bugs</li>
+<li>they are usually one of:</li>
+<li>stale or inconsistent source data</li>
+<li>mixed source-of-truth rules</li>
+<li>heuristic assumptions presented like exact calculations</li>
+<li>business thresholds that are reasonable but not personalized</li>
+</ul>
+
+<p>Overall status:</p>
+
+<table>
+<thead><tr><th>Area</th><th>Status</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>Date math</td><td><span class="badge green">GREEN</span></td><td>Simple, coherent, and mostly consistent</td></tr>
+<tr><td>Alert generation</td><td><span class="badge green">GREEN</span></td><td>Clear thresholds and understandable behavior</td></tr>
+<tr><td>Dashboard totals</td><td><span class="badge yellow">YELLOW</span></td><td>Straightforward, but not always aligned with richer reward-balance logic</td></tr>
+<tr><td>Recommendation engine</td><td><span class="badge yellow">YELLOW</span></td><td>Understandable, but threshold-driven and only lightly personalized</td></tr>
+<tr><td>Transfer optimization</td><td><span class="badge yellow">YELLOW</span></td><td>Internally coherent, but based on static CPP instead of real-world redemption data</td></tr>
+<tr><td>Loyalty / household balance model</td><td><span class="badge red">RED</span></td><td>Different screens use different balance sources, which can create conflicting totals</td></tr>
+<tr><td>Cloud sync impact on calculations</td><td><span class="badge red">RED</span></td><td>Sync edge cases can make valid formulas operate on bad data</td></tr>
+</tbody></table>
+
+<h2>2. High-Level Logic Model</h2>
+
+<p>The project can be understood as a pipeline:</p>
+
+<p><code>stored data -&gt; normalized dates/balances -&gt; totals and deadlines -&gt; recommendations -&gt; UI</code></p>
+
+<p>That means there are four places where the system can go wrong:</p>
+
+<table>
+<thead><tr><th>Stage</th><th>Status</th><th>Failure mode</th></tr></thead>
+<tbody>
+<tr><td>Stored data</td><td><span class="badge red">RED</span></td><td>stale, duplicated, missing, or wrongly scoped data</td></tr>
+<tr><td>Normalization</td><td><span class="badge yellow">YELLOW</span></td><td>inferred dates and mixed balance rules</td></tr>
+<tr><td>Calculation</td><td><span class="badge green">GREEN</span> / <span class="badge yellow">YELLOW</span></td><td>formulas are usually simple, but assumptions can be rough</td></tr>
+<tr><td>Presentation</td><td><span class="badge yellow">YELLOW</span></td><td>heuristic values can look more authoritative than they are</td></tr>
+</tbody></table>
+
+<h2>3. What Makes Sense</h2>
+
+<h3>3.1 Date arithmetic is mostly solid</h3>
+
+<p>Status: <span class="badge green">GREEN</span></p>
+
+<p>What it does well:</p>
+<ul>
+<li>uses calendar-day difference instead of naive milliseconds</li>
+<li>uses explicit handling for missing dates</li>
+<li>consistently treats overdue items as negative values</li>
+</ul>
+
+<p>Formula:</p>
+<ul>
+<li><code>days_remaining = differenceInCalendarDays(target_date, today_at_local_midnight)</code></li>
+</ul>
+
+<p>Why this makes sense:</p>
+<ul>
+<li>annual fee deadlines and signup bonus deadlines are calendar concepts</li>
+<li>exact times of day do not matter here</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>replace the <code>9999</code> sentinel with <code>null</code> or a typed enum in the core domain model</li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li><code>9999</code> works, but it leaks presentation concerns into logic</li>
+<li>future developers can easily misread it as a real number instead of &quot;no deadline&quot;</li>
+</ul>
+
+<h3>3.2 Alert logic is coherent</h3>
+
+<p>Status: <span class="badge green">GREEN</span></p>
+
+<p>What it does well:</p>
+<ul>
+<li>alert generation is easy to understand</li>
+<li>thresholds are consistent</li>
+<li>rules are not deeply coupled to UI state</li>
+</ul>
+
+<p>Severity formula:</p>
+<ul>
+<li>if <code>days &lt; 60</code> -&gt; red urgency</li>
+<li>else if <code>days &lt;= 120</code> -&gt; amber urgency</li>
+<li>else -&gt; green urgency</li>
+</ul>
+
+<p>Why this makes sense:</p>
+<ul>
+<li>the app’s main value is deadline visibility</li>
+<li>simple time-window thresholds are appropriate for that</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>add explicit severity names in the business language:</li>
+<li><code>critical</code></li>
+<li><code>approaching</code></li>
+<li><code>future</code></li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>business semantics are easier to discuss than raw color names</li>
+</ul>
+
+<h3>3.3 Fee forecasting is reasonable</h3>
+
+<p>Status: <span class="badge green">GREEN</span></p>
+
+<p>Formula:</p>
+<ul>
+<li><code>fees_next_12_months = sum(annualFee for active cards where 0 &lt;= days_to_fee &lt;= 365)</code></li>
+</ul>
+
+<p>Why this makes sense:</p>
+<ul>
+<li>it is a practical cash-planning metric</li>
+<li>it excludes closed cards and overdue dates</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>add two more variants:</li>
+<li>next 90 days</li>
+<li>next 24 months</li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>users think about immediate burn and medium-term exposure differently</li>
+</ul>
+
+<h2>4. What Is Understandable But Approximate</h2>
+
+<h3>4.1 Portfolio value math</h3>
+
+<p>Status: <span class="badge yellow">YELLOW</span></p>
+
+<p>Formulas:</p>
+<ul>
+<li><code>min_value = sum(balance * conservative_cpp) / 100</code></li>
+<li><code>max_value = sum(balance * optimistic_cpp) / 100</code></li>
+</ul>
+
+<p>What makes sense:</p>
+<ul>
+<li>the formula is internally coherent</li>
+<li>cents-per-point math is standard in rewards communities</li>
+<li>min/max framing is better than a single fake-precise number</li>
+</ul>
+
+<p>What does not fully make sense:</p>
+<ul>
+<li>static CPP assumptions are presented as if they are household portfolio value</li>
+<li>actual realizable value depends on:</li>
+<li>transfer partner access</li>
+<li>award availability</li>
+<li>taxes and fees</li>
+<li>route constraints</li>
+<li>traveler-specific behavior</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>relabel these as:</li>
+<li><code>estimated redemption value floor</code></li>
+<li><code>estimated redemption value ceiling</code></li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>&quot;portfolio value&quot; sounds more objective than the data supports</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>track <code>valuation_confidence</code> per program</li>
+</ul>
+
+<p>Example:</p>
+<ul>
+<li><span class="badge green">GREEN</span> for cashback</li>
+<li><span class="badge yellow">YELLOW</span> for flexible currencies</li>
+<li><span class="badge red">RED</span> for aspirational airline sweet-spot assumptions</li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>not all CPP estimates deserve the same level of trust</li>
+</ul>
+
+<h3>4.2 Signup bonus timing estimates</h3>
+
+<p>Status: <span class="badge yellow">YELLOW</span></p>
+
+<p>Formula:</p>
+<ul>
+<li><code>estimated_sub_received = (approvalDate ?? dateOpened) + subDeadlineMonths + 30 days</code></li>
+</ul>
+
+<p>What makes sense:</p>
+<ul>
+<li>it gives the system a conservative planning anchor when actual data is missing</li>
+</ul>
+
+<p>What does not fully make sense:</p>
+<ul>
+<li>statement close timing is not always +30 days</li>
+<li>bonus posting behavior varies widely by issuer and card</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>mark this output explicitly as estimated in the UI and reports</li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>this is planning math, not factual history</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>let users confirm or override estimated SUB received dates</li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>replacing inferred dates with actual dates improves every downstream rule</li>
+</ul>
+
+<h3>4.3 Recommendation thresholds</h3>
+
+<p>Status: <span class="badge yellow">YELLOW</span></p>
+
+<p>Examples:</p>
+<ul>
+<li>fee &gt; 400 triggers review recommendation</li>
+<li>4+ cards in last 24 months triggers Chase warning</li>
+<li>100,000 combined points drives one joint-strategy branch</li>
+</ul>
+
+<p>What makes sense:</p>
+<ul>
+<li>threshold logic is fast, explainable, and easy to debug</li>
+</ul>
+
+<p>What does not fully make sense:</p>
+<ul>
+<li>thresholds are not personalized</li>
+<li>thresholds are not derived from user goals, travel patterns, or issuer-specific nuance</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>separate recommendations into:</li>
+<li>policy rules</li>
+<li>heuristics</li>
+<li>personalized optimization</li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>users can understand which advice is hard constraint vs soft suggestion</li>
+</ul>
+
+<h2>5. What Does Not Make Sense and Should Be Improved</h2>
+
+<h3>5.1 Mixed balance source-of-truth rules</h3>
+
+<p>Status: <span class="badge red">RED</span></p>
+
+<p>Current problem:</p>
+<ul>
+<li>some calculations use <code>RewardProgram.balance</code></li>
+<li>some calculations derive balances from <code>loyaltyMemberships</code></li>
+<li>some screens effectively mix both worlds</li>
+</ul>
+
+<p>This means:</p>
+<ul>
+<li>one screen can say the household has one number</li>
+<li>another screen can imply a different number for the same program family</li>
+</ul>
+
+<p>Why this is a real issue:</p>
+<ul>
+<li>this is not merely a UI quirk</li>
+<li>it changes totals, valuations, transfer recommendations, and trust in the product</li>
+</ul>
+
+<p>What should improve:</p>
+<ul>
+<li>create one canonical balance-resolution layer used by all read paths</li>
+</ul>
+
+<p>Suggested model:</p>
+<ul>
+<li><code>getResolvedProgramBalance(programId, scope, personFilter)</code></li>
+<li>every screen reads through that function</li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>totals, dashboards, and strategy views should all agree on the same balance logic</li>
+</ul>
+
+<p>Suggested add-on:</p>
+<ul>
+<li>add a <code>balance_source</code> field to displayed metrics</li>
+</ul>
+
+<p>Examples:</p>
+<ul>
+<li><code>household currency</code></li>
+<li><code>derived from loyalty memberships</code></li>
+<li><code>manual estimate</code></li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>makes the origin of the number visible instead of hidden</li>
+</ul>
+
+<h3>5.2 Cloud sync can undermine correct math</h3>
+
+<p>Status: <span class="badge red">RED</span></p>
+
+<p>Current problem:</p>
+<ul>
+<li>the sync layer can leave stale local data around</li>
+<li>the initial sync state is device-level rather than user/scope-level</li>
+<li>some delete flows do not reliably clear data everywhere</li>
+</ul>
+
+<p>Why this matters:</p>
+<ul>
+<li>if the card set is wrong, every formula downstream becomes wrong</li>
+</ul>
+
+<p>This is the hierarchy of truth:</p>
+<ul>
+<li>data integrity is more important than formula correctness</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>make sync state keyed by user + household scope</li>
+</ul>
+
+<p>Formula idea:</p>
+<ul>
+<li><code>sync_key = user_id + scope_mode + scope_id</code></li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>initial sync should not be shared across unrelated users or household states on the same browser</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>treat empty cloud result as a valid state, not a no-op</li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>deleting the last record should actually clear the local store</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>add a visible sync status panel in Settings</li>
+</ul>
+
+<p>Include:</p>
+<ul>
+<li>current scope</li>
+<li>last cloud fetch time</li>
+<li>pending queue count</li>
+<li>initial sync complete flag</li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>makes &quot;wrong number&quot; debugging much faster</li>
+</ul>
+
+<h3>5.3 Dashboard totals are too disconnected from the richer rewards model</h3>
+
+<p>Status: <span class="badge red">RED</span></p>
+
+<p>Current problem:</p>
+<ul>
+<li>dashboard totals are simple sums over <code>rewardPrograms</code></li>
+<li>transfer logic uses more nuanced loyalty-membership derivation</li>
+</ul>
+
+<p>Why this is bad:</p>
+<ul>
+<li>the dashboard is the most trusted summary view</li>
+<li>if it is simpler than the deeper logic, it can be the most misleading screen in the app</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>rebuild dashboard totals on top of the same resolved balance layer used by transfer logic</li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>summary views should be downstream of canonical logic, not parallel to it</li>
+</ul>
+
+<h2>6. Formula-by-Formula Audit</h2>
+
+<h3>6.1 Active card totals</h3>
+
+<p>Formula:</p>
+<ul>
+<li><code>active_cards = cards where status = active</code></li>
+<li><code>total_cards = count(active_cards)</code></li>
+</ul>
+
+<p>Status: <span class="badge green">GREEN</span></p>
+
+<p>Assessment:</p>
+<ul>
+<li>simple and correct for the product</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>optionally expose <code>total_open_cards</code> and <code>total_all_cards</code></li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>some users may want active-only vs all-history counts separated</li>
+</ul>
+
+<h3>6.2 Cards needing action</h3>
+
+<p>Formula:</p>
+<ul>
+<li>include if <code>status != closed</code> and (<code>days_to_fee &lt;= 60</code> or <code>keepCancelStatus = cancel</code>)</li>
+</ul>
+
+<p>Status: <span class="badge green">GREEN</span></p>
+
+<p>Assessment:</p>
+<ul>
+<li>good attention metric</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>split into two displayed subcounts:</li>
+<li>fee action</li>
+<li>cancel action</li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>one blended number hides the actual cause of urgency</li>
+</ul>
+
+<h3>6.3 Upcoming fee list</h3>
+
+<p>Formula:</p>
+<ul>
+<li>include if <code>annualFee &gt; 0</code> and <code>days_to_fee &lt;= 120</code></li>
+</ul>
+
+<p>Status: <span class="badge yellow">YELLOW</span></p>
+
+<p>Assessment:</p>
+<ul>
+<li>makes sense for the list view</li>
+<li>less ideal as a universal &quot;upcoming&quot; definition</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>parameterize the horizon instead of hardcoding 120</li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>different screens may need 60, 90, 120, or 365 days</li>
+</ul>
+
+<h3>6.4 Lifetime signup bonus value</h3>
+
+<p>Formula:</p>
+<ul>
+<li><code>sum(enrollBonusValue ?? 0 for active cards)</code></li>
+</ul>
+
+<p>Status: <span class="badge yellow">YELLOW</span></p>
+
+<p>Assessment:</p>
+<ul>
+<li>this is easy to compute, but semantically fuzzy</li>
+</ul>
+
+<p>Why it is weak:</p>
+<ul>
+<li>&quot;lifetime&quot; is a misleading label if only active cards are included</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>rename one of these:</li>
+<li><code>active_cards_signup_bonus_value</code></li>
+<li><code>historical_signup_bonus_value</code></li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>current naming can confuse scope and time horizon</li>
+</ul>
+
+<h3>6.5 High-fee recommendation</h3>
+
+<p>Rule:</p>
+<ul>
+<li>if <code>annualFee &gt; 400</code> and user currently marks keep -&gt; recommend review</li>
+</ul>
+
+<p>Status: <span class="badge yellow">YELLOW</span></p>
+
+<p>Assessment:</p>
+<ul>
+<li>reasonable heuristic</li>
+<li>not enough for strong advice</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>compute a rough benefit-retention score</li>
+</ul>
+
+<p>Example:</p>
+<ul>
+<li><code>net_card_value = estimated_used_benefits + retention_value + sub_remaining_value - annual_fee</code></li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>high fee alone is not a meaningful proxy for poor value</li>
+</ul>
+
+<h3>6.6 Chase 5/24 rule</h3>
+
+<p>Formula:</p>
+<ul>
+<li>count cards opened in last 24 months excluding AU cards</li>
+</ul>
+
+<p>Status: <span class="badge yellow">YELLOW</span></p>
+
+<p>Assessment:</p>
+<ul>
+<li>understandable and close to common hobby shorthand</li>
+</ul>
+
+<p>Weakness:</p>
+<ul>
+<li>uses <code>dateOpened</code>, not a true application or account-open policy date</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>prefer resolved application date when available</li>
+</ul>
+
+<p>Formula:</p>
+<ul>
+<li><code>application_anchor = resolveApplicationDate(card) ?? dateOpened</code></li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>better matches the rest of the project’s attempt to distinguish confidence levels</li>
+</ul>
+
+<h3>6.7 Transfer optimization</h3>
+
+<p>Formula:</p>
+<ul>
+<li><code>effective_cpp = destination_cpp * (toMultiplier / fromMultiplier)</code></li>
+<li>recommend transfer if <code>effective_cpp &gt; cash_cpp</code></li>
+</ul>
+
+<p>Status: <span class="badge yellow">YELLOW</span></p>
+
+<p>Assessment:</p>
+<ul>
+<li>mathematically coherent for first-pass optimization</li>
+</ul>
+
+<p>Weakness:</p>
+<ul>
+<li>not enough to call something the &quot;best&quot; real-world transfer</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>rename result to <code>best static value route</code></li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>&quot;best transfer&quot; implies itinerary-aware optimization, which this is not</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>factor in transfer fee penalty when present</li>
+</ul>
+
+<p>Possible formula:</p>
+<ul>
+<li><code>net_transfer_value = transfer_value - estimated_transfer_fee</code></li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>currently fee awareness is mostly descriptive, not part of route ranking</li>
+</ul>
+
+<h2>7. Logic That Should Be Reframed, Not Just Fixed</h2>
+
+<h3>7.1 The product should separate exact facts from planning assumptions</h3>
+
+<p>Status: <span class="badge red">RED</span></p>
+
+<p>Right now the project often mixes:</p>
+<ul>
+<li>factual data</li>
+<li>inferred dates</li>
+<li>heuristic guidance</li>
+<li>static valuation assumptions</li>
+</ul>
+
+<p>Improvement:</p>
+<ul>
+<li>add a confidence taxonomy to every derived metric</li>
+</ul>
+
+<p>Suggested categories:</p>
+<ul>
+<li><code>exact</code></li>
+<li><code>derived</code></li>
+<li><code>heuristic</code></li>
+<li><code>policy_rule</code></li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>users can understand whether a number is measured, inferred, or advisory</li>
+</ul>
+
+<h3>7.2 The project needs a visible &quot;logic hierarchy&quot;</h3>
+
+<p>Status: <span class="badge yellow">YELLOW</span></p>
+
+<p>Recommended hierarchy:</p>
+
+<p>1. Source data integrity</p>
+<p>2. Scope and sync integrity</p>
+<p>3. Balance resolution</p>
+<p>4. Core derived metrics</p>
+<p>5. Recommendations and heuristics</p>
+
+<p>Why:</p>
+<ul>
+<li>this is the order in which trust should be established</li>
+</ul>
+
+<h2>8. Suggested Additions To Improve Understanding</h2>
+
+<p>Yes. There are several additions that would materially improve understanding of both logic and formulas.</p>
+
+<h3>8.1 Add a source-of-truth matrix</h3>
+
+<p>Status: <span class="badge green">GREEN</span></p>
+
+<p>What to add:</p>
+
+<table>
+<thead><tr><th>Metric / screen</th><th>Data source</th><th>Formula source</th><th>Confidence</th><th>Owner</th></tr></thead>
+<tbody>
+</tbody></table>
+
+<p>Why:</p>
+<ul>
+<li>this would make it obvious where each number comes from</li>
+</ul>
+
+<h3>8.2 Add worked examples</h3>
+
+<p>Status: <span class="badge green">GREEN</span></p>
+
+<p>What to add:</p>
+<ul>
+<li>one card example</li>
+<li>one annual-fee example</li>
+<li>one signup bonus example</li>
+<li>one transfer example</li>
+<li>one household-vs-person balance example</li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>formulas become much easier to reason about with concrete numbers</li>
+</ul>
+
+<h3>8.3 Add a &quot;fact vs estimate&quot; legend to the UI and reports</h3>
+
+<p>Status: <span class="badge green">GREEN</span></p>
+
+<p>Suggested display:</p>
+<ul>
+<li>Fact</li>
+<li>Derived</li>
+<li>Estimate</li>
+<li>Heuristic</li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>prevents users from over-trusting approximate outputs</li>
+</ul>
+
+<h3>8.4 Add scenario tests</h3>
+
+<p>Status: <span class="badge yellow">YELLOW</span></p>
+
+<p>What to add:</p>
+<ul>
+<li>whole-household fixture tests instead of only unit tests on helpers</li>
+</ul>
+
+<p>Examples:</p>
+<ul>
+<li>delete last reward program</li>
+<li>move from solo to household</li>
+<li>loyalty membership totals vs dashboard totals</li>
+<li>fee forecast for mixed active/closed cards</li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>many correctness issues here are cross-layer, not single-function bugs</li>
+</ul>
+
+<h3>8.5 Add a metric glossary</h3>
+
+<p>Status: <span class="badge green">GREEN</span></p>
+
+<p>Examples:</p>
+<ul>
+<li><code>total points</code></li>
+<li><code>portfolio value</code></li>
+<li><code>lifetime signup bonus value</code></li>
+<li><code>needs action</code></li>
+<li><code>best transfer</code></li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>several current labels sound more precise than their underlying logic</li>
+</ul>
+
+<h3>8.6 Add a &quot;why this recommendation exists&quot; drilldown</h3>
+
+<p>Status: <span class="badge green">GREEN</span></p>
+
+<p>For each recommendation, show:</p>
+<ul>
+<li>inputs used</li>
+<li>formula or rule</li>
+<li>assumptions</li>
+<li>confidence</li>
+</ul>
+
+<p>Why:</p>
+<ul>
+<li>recommendation trust rises sharply when users can inspect the basis</li>
+</ul>
+
+<h2>9. Best Next Improvements</h2>
+
+<p>If the goal is maximum correctness per engineering hour, do these in order:</p>
+
+<table>
+<thead><tr><th>Priority</th><th>Improvement</th><th>Status</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>unify reward-balance resolution behind one canonical function</td><td><span class="badge red">RED</span></td><td>fixes conflicting totals and downstream logic drift</td></tr>
+<tr><td>2</td><td>fix cloud-sync empty-state and per-scope initialization behavior</td><td><span class="badge red">RED</span></td><td>bad data invalidates every formula</td></tr>
+<tr><td>3</td><td>relabel valuation outputs as estimates with confidence</td><td><span class="badge yellow">YELLOW</span></td><td>improves honesty and reduces user confusion</td></tr>
+<tr><td>4</td><td>move dashboard totals onto canonical balance resolution</td><td><span class="badge red">RED</span></td><td>summary screen should match deeper logic</td></tr>
+<tr><td>5</td><td>add scenario-level tests for household, sync, and loyalty cases</td><td><span class="badge yellow">YELLOW</span></td><td>catches real-world regressions better than helper tests</td></tr>
+<tr><td>6</td><td>replace blunt fee-only recommendation with net-value model</td><td><span class="badge yellow">YELLOW</span></td><td>materially improves usefulness of advice</td></tr>
+<tr><td>7</td><td>add source-of-truth matrix and worked examples to docs</td><td><span class="badge green">GREEN</span></td><td>improves maintainability and auditability</td></tr>
+</tbody></table>
+
+<h2>10. Top 10 Logic Fixes</h2>
+
+<p>These are ordered by impact on trust and correctness.</p>
+
+<table>
+<thead><tr><th>Rank</th><th>Fix</th><th>Status</th><th>Estimated effort</th><th>Why it matters</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>unify reward-balance resolution into one canonical read path</td><td><span class="badge red">RED</span></td><td>1-2 days</td><td>removes conflicting totals across screens</td></tr>
+<tr><td>2</td><td>fix cloud-sync empty-state handling</td><td><span class="badge red">RED</span></td><td>0.5-1 day</td><td>prevents deleted data from lingering locally</td></tr>
+<tr><td>3</td><td>make sync initialization keyed by user and scope, not just device</td><td><span class="badge red">RED</span></td><td>0.5-1.5 days</td><td>stops cross-user and cross-household contamination</td></tr>
+<tr><td>4</td><td>move dashboard totals onto canonical balance logic</td><td><span class="badge red">RED</span></td><td>0.5-1 day</td><td>summary view must match deeper logic</td></tr>
+<tr><td>5</td><td>relabel estimated value outputs with confidence levels</td><td><span class="badge yellow">YELLOW</span></td><td>0.5 day</td><td>reduces false precision</td></tr>
+<tr><td>6</td><td>replace &quot;lifetime signup bonus value&quot; with clearer scoped metrics</td><td><span class="badge yellow">YELLOW</span></td><td>0.25-0.5 day</td><td>improves semantic correctness</td></tr>
+<tr><td>7</td><td>add scenario tests for household moves, deletes, and loyalty balance reads</td><td><span class="badge yellow">YELLOW</span></td><td>1-2 days</td><td>catches real-world failures that helper tests miss</td></tr>
+<tr><td>8</td><td>incorporate transfer fees into route ranking, not just description</td><td><span class="badge yellow">YELLOW</span></td><td>0.5-1 day</td><td>improves recommendation realism</td></tr>
+<tr><td>9</td><td>switch Chase 5/24 logic to prefer resolved application dates</td><td><span class="badge yellow">YELLOW</span></td><td>0.5 day</td><td>better reflects actual eligibility intent</td></tr>
+<tr><td>10</td><td>split recommendation types into policy rule vs heuristic vs estimate</td><td><span class="badge green">GREEN</span></td><td>0.5-1 day</td><td>makes advice easier to trust and explain</td></tr>
+</tbody></table>
+
+<h3>10.1 Suggested implementation sequence</h3>
+
+<p>Recommended order:</p>
+
+<p>1. Fix sync correctness.</p>
+<p>2. Fix balance source-of-truth.</p>
+<p>3. Rebuild dashboard totals.</p>
+<p>4. Add scenario tests.</p>
+<p>5. Improve semantics and confidence labeling.</p>
+<p>6. Improve recommendation sophistication.</p>
+
+<p>Why:</p>
+<ul>
+<li>there is no value in making recommendations smarter if the underlying numbers are still inconsistent</li>
+</ul>
+
+<h2>11. Numbers Most Likely Wrong Today</h2>
+
+<p>These are the outputs I would distrust first without further validation.</p>
+
+<table>
+<thead><tr><th>Number / metric</th><th>Status</th><th>Why it is at risk</th></tr></thead>
+<tbody>
+<tr><td>dashboard total points</td><td><span class="badge red">RED</span></td><td>may disagree with loyalty-membership-derived balances</td></tr>
+<tr><td>dashboard portfolio value</td><td><span class="badge red">RED</span></td><td>depends on possibly inconsistent balances plus static CPP assumptions</td></tr>
+<tr><td>top reward programs by value</td><td><span class="badge red">RED</span></td><td>uses simple <code>rewardPrograms.balance</code> path and optimistic CPP only</td></tr>
+<tr><td>any metric right after sync scope changes</td><td><span class="badge red">RED</span></td><td>household/individual transitions can leave data in a bad state</td></tr>
+<tr><td>any metric after deleting the last card or last reward program on another device</td><td><span class="badge red">RED</span></td><td>empty cloud results may not clear local state</td></tr>
+<tr><td>lifetime signup bonus value</td><td><span class="badge yellow">YELLOW</span></td><td>label is misleading relative to the actual inclusion rules</td></tr>
+<tr><td>Chase 5/24 count</td><td><span class="badge yellow">YELLOW</span></td><td>uses <code>dateOpened</code> instead of best-available application-date logic</td></tr>
+<tr><td>transfer recommendation &quot;best route&quot;</td><td><span class="badge yellow">YELLOW</span></td><td>static-value best route is not the same as best real-world redemption</td></tr>
+<tr><td>first-year fee waiver expiry timing</td><td><span class="badge yellow">YELLOW</span></td><td>fallback date math is reasonable but still inferred</td></tr>
+<tr><td>cards needing action</td><td><span class="badge green">GREEN</span></td><td>simple and likely correct if source card data is correct</td></tr>
+</tbody></table>
+
+<h3>11.1 Numbers I would trust most today</h3>
+
+<table>
+<thead><tr><th>Number / metric</th><th>Status</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>annual fee alert countdowns</td><td><span class="badge green">GREEN</span></td><td>simple date arithmetic</td></tr>
+<tr><td>fee due in next 12 months</td><td><span class="badge green">GREEN</span></td><td>clear inclusion criteria</td></tr>
+<tr><td>cancel-marked card counts</td><td><span class="badge green">GREEN</span></td><td>direct state read</td></tr>
+<tr><td>active card counts</td><td><span class="badge green">GREEN</span></td><td>direct filtered count</td></tr>
+</tbody></table>
+
+<h2>12. Bottom Line</h2>
+
+<p>The project has good bones:</p>
+<ul>
+<li>the core formulas are usually simple and intelligible</li>
+<li>the alert engine is coherent</li>
+<li>the deadline math is solid</li>
+</ul>
+
+<p>The real weaknesses are structural:</p>
+<ul>
+<li>inconsistent data-source rules</li>
+<li>heuristic outputs that are easy to over-trust</li>
+<li>sync behavior that can poison otherwise-correct calculations</li>
+</ul>
+
+<p>The best way to improve trust is not to make the math more complex first.</p>
+
+<p>It is to:</p>
+<ul>
+<li>unify source-of-truth rules</li>
+<li>separate facts from estimates</li>
+<li>make assumptions visible</li>
+<li>test whole scenarios, not just helper functions</li>
+</ul>
+  </main>
+</body>
+</html>
