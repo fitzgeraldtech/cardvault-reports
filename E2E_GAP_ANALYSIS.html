@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CardVault Decision Tables</title>
+  <style>
+    :root {
+      --bg: #f5f2ea;
+      --paper: #fffdf8;
+      --ink: #1f2937;
+      --muted: #5f6b7a;
+      --line: #d8d1c2;
+      --accent: #0f766e;
+      --accent-soft: #dff4f1;
+      --header: #12343b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, #eee6d7 0%, var(--bg) 100%);
+    }
+    .page {
+      max-width: 980px;
+      margin: 32px auto 56px;
+      background: var(--paper);
+      padding: 48px 52px 64px;
+      box-shadow: 0 16px 60px rgba(18, 52, 59, 0.10);
+      border: 1px solid rgba(18, 52, 59, 0.08);
+    }
+    h1, h2, h3 {
+      color: var(--header);
+      page-break-after: avoid;
+    }
+    h1 {
+      font-size: 34px;
+      margin: 0 0 10px;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--accent);
+      letter-spacing: 0.01em;
+    }
+    h2 {
+      margin-top: 34px;
+      font-size: 24px;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+    }
+    h3 {
+      margin-top: 24px;
+      font-size: 18px;
+    }
+    p, li {
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    p {
+      margin: 10px 0;
+    }
+    ul {
+      margin: 8px 0 14px 22px;
+    }
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      background: #f1eee6;
+      border: 1px solid #e2dccd;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      font-size: 0.92em;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.1rem 0.42rem;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      border: 1px solid transparent;
+    }
+    .badge.green {
+      background: #e4f4ea;
+      color: #166534;
+      border-color: #b7ddc5;
+    }
+    .badge.yellow {
+      background: #fbf1cc;
+      color: #92400e;
+      border-color: #ead794;
+    }
+    .badge.red {
+      background: #f8d9d7;
+      color: #991b1b;
+      border-color: #e9b4af;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 18px;
+      page-break-inside: avoid;
+    }
+    thead th {
+      background: var(--accent-soft);
+      color: var(--header);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: top;
+      text-align: left;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    tbody tr:nth-child(even) td {
+      background: rgba(18, 52, 59, 0.03);
+    }
+    .meta {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 22px;
+    }
+    @media print {
+      body {
+        background: white;
+      }
+      .page {
+        margin: 0;
+        max-width: none;
+        box-shadow: none;
+        border: none;
+        padding: 0;
+      }
+      h2 {
+        page-break-after: avoid;
+      }
+      table, tr, td, th {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="meta">Prepared from the current local repository checkout at <code>/home/chris/cardvault</code>.</div>
+    <h1>CardVault Browser Coverage And Gap Analysis</h1>
+
+<h2>1. Executive Summary</h2>
+
+<p>This report is grounded in what the app currently does in-browser, not just what the code suggests it should do.</p>
+
+<p>Current browser baseline:</p>
+<ul>
+<li>12 Playwright tests passing in deterministic mock mode</li>
+<li>117 unit tests already passing</li>
+<li>the app shell, key portfolio views, core filters, rewards editing, settings dark-mode persistence, alerts interactions, strategy interactions, and mobile bottom navigation are now browser-verified</li>
+</ul>
+
+<p>What that means:</p>
+<ul>
+<li>the product has a real, testable frontend foundation</li>
+<li>the biggest remaining risk is not whether the UI renders</li>
+<li>the biggest remaining risk is whether stateful flows stay correct when real auth, sync, household state, imports, and destructive actions are involved</li>
+</ul>
+
+<p>Bottom-line assessment:</p>
+<ul>
+<li>current user-facing shell and presentation layer: mostly in place</li>
+<li>current workflow coverage: materially improved, but still incomplete</li>
+<li>current backend-integrated trust level: still limited</li>
+</ul>
+
+<h2>2. Scope And Method</h2>
+
+<p>This analysis is based on:</p>
+<ul>
+<li>direct repository inspection</li>
+<li>running the app locally under Playwright mock mode</li>
+<li>using Playwright to exercise the same surfaces a user sees</li>
+<li>observing which interactions were straightforward, brittle, or still missing</li>
+</ul>
+
+<p>Important limit:</p>
+<ul>
+<li>these tests validate browser-visible behavior in a deterministic environment</li>
+<li>they do not yet validate live Supabase auth, live cloud sync, live household collaboration, or real seeded-account data mutations end to end</li>
+</ul>
+
+<h2>3. What Is Currently In Place</h2>
+
+<h3>3.1 Browser-tested functionality</h3>
+
+<p>The following flows are currently verified in-browser:</p>
+<ul>
+<li>guest users land on the login screen</li>
+<li>mock sign-in enters the app shell</li>
+<li>authenticated users bypass login</li>
+<li>primary navigation across overview, cards, rewards, travel, and strategy works</li>
+<li>cards search filters visible card inventory</li>
+<li>cards person/type filters combine correctly</li>
+<li>rewards balance edits persist across reload</li>
+<li>trip-goal entry point opens from the dashboard</li>
+<li>alerts view renders urgency controls and annual-fee actions</li>
+<li>strategy view renders major recommendation modules and dismiss behavior</li>
+<li>settings modal opens and dark-mode preference persists across reload</li>
+<li>mobile viewport navigation remains usable across primary tabs</li>
+</ul>
+
+<h3>3.2 Product capability visible from the current UI</h3>
+
+<p>From a user’s point of view, the project already has:</p>
+<ul>
+<li>a coherent login and app-shell experience</li>
+<li>a strong cards portfolio view</li>
+<li>a rewards surface with immediate editable state</li>
+<li>deadline/alert management UI</li>
+<li>a strategy page with static and dynamic advice surfaces</li>
+<li>a settings modal with account and data-management functions</li>
+<li>responsive navigation that still works on a phone-sized viewport</li>
+</ul>
+
+<h2>4. What The Browser Testing Suggests Is Working Well</h2>
+
+<h3>4.1 Product strengths</h3>
+
+<ul>
+<li>The app feels like a real product, not a stitched-together prototype.</li>
+<li>Cards filtering is fast and legible, which is important because that screen is one of the clearest user-value surfaces.</li>
+<li>Rewards editing feels immediate and survives reload, which builds trust in the local persistence model.</li>
+<li>Strategy and alerts both expose user-facing decision surfaces instead of only static summaries.</li>
+<li>The mobile shell remains navigable without collapsing into a broken desktop layout.</li>
+</ul>
+
+<h3>4.2 Engineering strengths</h3>
+
+<ul>
+<li>The deterministic mock-mode harness is a meaningful improvement to testability.</li>
+<li>The app is now structured well enough to support stable browser coverage without requiring the live backend for every run.</li>
+<li>State persistence is testable at the UI layer, not just at store-unit-test level.</li>
+</ul>
+
+<h2>5. What Is Still Missing</h2>
+
+<h3>5.1 High-priority missing E2E coverage</h3>
+
+<table>
+<thead><tr><th>Area</th><th>Current state</th><th>Why it matters</th></tr></thead>
+<tbody>
+<tr><td>real Supabase authentication</td><td>not run end to end</td><td>no production-trust proof for sign-in/session behavior</td></tr>
+<tr><td>onboarding wizard</td><td>unverified in browser</td><td>first-run success path is still a blind spot</td></tr>
+<tr><td>add card flow</td><td>unverified</td><td>high-value write path</td></tr>
+<tr><td>edit card flow</td><td>unverified</td><td>core maintenance path</td></tr>
+<tr><td>delete/close card flow</td><td>unverified</td><td>destructive lifecycle path</td></tr>
+<tr><td>settings import/export/reset</td><td>unverified</td><td>highest-risk local data operations</td></tr>
+<tr><td>full trip-goal create/edit flow</td><td>partially verified</td><td>current coverage stops at modal entry</td></tr>
+<tr><td>notifications panel behavior</td><td>unverified</td><td>visible app signal channel</td></tr>
+<tr><td>sub check-in modal workflow</td><td>unverified</td><td>recurring guidance and nudging logic</td></tr>
+<tr><td>balance gate real behavior</td><td>not truly tested</td><td>one of the most interruption-prone flows</td></tr>
+<tr><td>household create/invite/accept</td><td>unverified</td><td>important product differentiator</td></tr>
+<tr><td>cloud sync and realtime updates</td><td>unverified</td><td>highest correctness risk in the app</td></tr>
+</tbody></table>
+
+<h3>5.2 Medium-priority missing coverage</h3>
+
+<table>
+<thead><tr><th>Area</th><th>Current state</th><th>Why it matters</th></tr></thead>
+<tbody>
+<tr><td>accessibility behavior</td><td>only indirectly observed</td><td>weak labels and modal semantics can hurt both users and tests</td></tr>
+<tr><td>notification CTA routing</td><td>not covered</td><td>can silently fail without obvious regressions</td></tr>
+<tr><td>admin/review flows</td><td>not covered</td><td>operational workflows remain outside the safety net</td></tr>
+<tr><td>mobile deep interactions</td><td>partially covered</td><td>shell is proven, task flows are not</td></tr>
+<tr><td>empty-state behavior</td><td>mostly untested</td><td>many apps fail most obviously on sparse accounts</td></tr>
+<tr><td>import edge cases</td><td>untested</td><td>user trust risk</td></tr>
+</tbody></table>
+
+<h2>6. Gap Analysis By Category</h2>
+
+<h3>6.1 Features Currently In Place</h3>
+
+<table>
+<thead><tr><th>Area</th><th>Status</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>login and shell</td><td>in place</td><td>browser-verified</td></tr>
+<tr><td>portfolio overview</td><td>in place</td><td>visible, dense, and interactive</td></tr>
+<tr><td>cards inventory and filtering</td><td>in place</td><td>browser-verified</td></tr>
+<tr><td>rewards tracking</td><td>in place</td><td>browser-verified for editing persistence</td></tr>
+<tr><td>alerts view</td><td>in place</td><td>browser-verified for core urgency/action visibility</td></tr>
+<tr><td>strategy view</td><td>in place</td><td>browser-verified for major modules</td></tr>
+<tr><td>settings basics</td><td>in place</td><td>browser-verified for modal open and dark mode persistence</td></tr>
+<tr><td>mobile navigation</td><td>in place</td><td>browser-verified</td></tr>
+</tbody></table>
+
+<h3>6.2 Features Missing Or Only Partial</h3>
+
+<table>
+<thead><tr><th>Area</th><th>Status</th><th>Observation</th></tr></thead>
+<tbody>
+<tr><td>travel tab</td><td>partial</td><td>route still reads like a placeholder while trip-goal capability lives elsewhere</td></tr>
+<tr><td>trip-goal management</td><td>partial</td><td>entry point exists, end-to-end task flow still incomplete</td></tr>
+<tr><td>household collaboration</td><td>partial</td><td>architecture exists, trust level does not</td></tr>
+<tr><td>admin curation loop</td><td>partial</td><td>not part of a validated operational system</td></tr>
+<tr><td>recommendation explainability</td><td>partial</td><td>advice is visible, rationale is still too implicit</td></tr>
+</tbody></table>
+
+<h3>6.3 Foundational Improvements Recommended</h3>
+
+<table>
+<thead><tr><th>Foundation area</th><th>Current state</th><th>Recommendation</th></tr></thead>
+<tbody>
+<tr><td>source of truth for balances and valuations</td><td>mixed</td><td>centralize how dashboard, rewards, and strategy derive numbers</td></tr>
+<tr><td>backend-integrated test lane</td><td>scaffolded only</td><td>finish and run seeded live E2E regularly</td></tr>
+<tr><td>sync confidence</td><td>weak</td><td>add scenario tests for deletes, empty states, and multi-device refresh</td></tr>
+<tr><td>modal/accessibility semantics</td><td>uneven</td><td>add explicit accessible labels and less brittle interaction patterns</td></tr>
+<tr><td>data-destructive flows</td><td>under-tested</td><td>verify import, reset, delete, and sync reconciliation in browser</td></tr>
+</tbody></table>
+
+<h3>6.4 UX Improvements Recommended</h3>
+
+<table>
+<thead><tr><th>UX area</th><th>Observation</th><th>Recommendation</th></tr></thead>
+<tbody>
+<tr><td>dashboard density</td><td>too much stacked decision-making on one screen</td><td>split summary from management tasks</td></tr>
+<tr><td>travel information architecture</td><td>travel tab and trip-goal behavior are split</td><td>move trip-goal ownership into travel, keep dashboard as summary only</td></tr>
+<tr><td>modal interaction model</td><td>key tasks are heavily modal</td><td>reduce blocking prompts and provide clearer escape paths</td></tr>
+<tr><td>terminology certainty</td><td>labels can overstate confidence in calculated values</td><td>distinguish exact, estimated, and heuristic values</td></tr>
+<tr><td>recommendation trust</td><td>users can see advice faster than they can understand it</td><td>add “why this recommendation exists” detail</td></tr>
+</tbody></table>
+
+<h2>7. What Looked Weak During Automation</h2>
+
+<p>These are not necessarily bugs, but they are signals worth taking seriously because they showed friction while driving the app like a user:</p>
+
+<ul>
+<li>The settings dropdown interaction was harder to automate than it should be.</li>
+<li>Several controls depend on visual text placement rather than robust accessible targeting.</li>
+<li>The dashboard remains the gravitational center of too many responsibilities.</li>
+<li>The <code>Travel</code> route still under-delivers relative to the rest of the product.</li>
+<li>Some of the most important behaviors are still only trustworthy in local/mock state, not real backend state.</li>
+</ul>
+
+<h2>8. Recommended Next Steps</h2>
+
+<h3>8.1 Next testing steps</h3>
+
+<p>1. Add browser coverage for add/edit/delete card flows.</p>
+<p>2. Add browser coverage for settings import, export, and reset.</p>
+<p>3. Complete the trip-goal flow from create through edit/update.</p>
+<p>4. Add notification-panel tests and balance-gate tests.</p>
+<p>5. Run the live-backend Playwright lane once seeded credentials are available.</p>
+
+<h3>8.2 Next feature/foundation steps</h3>
+
+<p>1. Turn <code>Travel</code> into a first-class feature area.</p>
+<p>2. Make recommendation logic more explainable to the user.</p>
+<p>3. Centralize number derivation so dashboard and strategy use the same truth model.</p>
+<p>4. Harden cloud sync around empty states, deletes, and first-sync scoping.</p>
+<p>5. Reduce reliance on modal-heavy interaction for primary workflows.</p>
+
+<h2>9. Bottom Line</h2>
+
+<p>The project does not need a restart.</p>
+
+<p>It already has:</p>
+<ul>
+<li>a credible frontend foundation</li>
+<li>meaningful user-facing functionality</li>
+<li>enough testability to keep improving safely</li>
+</ul>
+
+<p>What it still needs is:</p>
+<ul>
+<li>coverage for the highest-risk write paths</li>
+<li>proof against the real backend</li>
+<li>stronger source-of-truth discipline around state and calculations</li>
+<li>cleaner UX separation between overview, management, and planning</li>
+</ul>
+
+<p>In practical terms:</p>
+<ul>
+<li>the visible product is ahead of its trust infrastructure</li>
+<li>the right move is to keep building on this base, not replace it</li>
+</ul>
+  </main>
+</body>
+</html>
