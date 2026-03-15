@@ -13,6 +13,9 @@ AmplifyPoints (v0.9.0) is a robust, well-architected mobile-first React SPA for 
 | **ARCH-01** | `RootLayout.tsx` is an over-burdened "God component". | **MEDIUM** | `src/layouts/RootLayout.tsx` | Refactor modals and global side-effects into dedicated Providers. | Medium |
 | **DATA-01** | `cardholder` field uses hardcoded strings ('Chris'/'Vanessa'). | **MEDIUM** | Throughout `src/` | Migrate to real Supabase `owner_user_id` (scheduled for Phase 12). | Large |
 | **UX-01** | Hardcoded hex colors in secondary components (AlertsTab, CardsTab). | **LOW** | `AlertsTab.tsx`, `CardsTab.tsx` | Replace all hardcoded hex with `var(--color-*)` tokens for consistent dark mode. | Small |
+| **UX-02** | IA Clutter: Trip Goal management buried in Dashboard modal. | **MEDIUM** | `DashboardPage.tsx`, `TravelPage.tsx` | Move goal management to the Travel tab; use Dashboard for summary only. | Medium |
+| **UX-03** | Modal fatigue: Over-reliance on blocking, center-aligned modals. | **MEDIUM** | `RootLayout.tsx` | Transition to Bottom Sheets for mobile viewports (e.g., via `vaul`). | Medium |
+| **UX-04** | Opaque strategy: Recommendations lack visible rationale. | **LOW** | `StrategyPage.tsx` | Add "Explainability" tooltips or expanders to recommendations. | Small |
 | **TEST-01** | Missing E2E coverage for core write/destructive paths. | **HIGH** | `tests/e2e/` | Add Playwright tests for Add/Edit/Delete card and Settings reset. | Medium |
 
 ## 3. Site Map
@@ -41,21 +44,30 @@ AmplifyPoints (v0.9.0) is a robust, well-architected mobile-first React SPA for 
 
 ## 6. UX Scorecard
 
-| Tab | Usefulness | Usability | Completeness | Polish | Score |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Dashboard** | 9 | 8 | 8 | 9 | **8.5** |
-| **Cards** | 10 | 9 | 9 | 9 | **9.3** |
-| **Rewards** | 8 | 7 | 6 | 8 | **7.3** |
-| **Alerts** | 10 | 8 | 9 | 8 | **8.8** |
-| **Strategy** | 7 | 8 | 6 | 7 | **7.0** |
-| **Travel** | 3 | 5 | 2 | 4 | **3.5** |
+| Tab | Usefulness | Usability | Completeness | Polish | Notes | Score |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Dashboard** | 9 | 8 | 8 | 9 | High density; good hero card; needs less management clutter. | **8.5** |
+| **Cards** | 10 | 9 | 9 | 9 | Core value driver. Search/filter is excellent. | **9.3** |
+| **Rewards** | 8 | 7 | 6 | 8 | Needs better source clarity ([Personal] vs [Household]). | **7.3** |
+| **Alerts** | 10 | 8 | 9 | 8 | Timeline view is clear. Decision actions are useful. | **8.8** |
+| **Strategy** | 7 | 8 | 6 | 7 | Advice is good but "black-box". Needs explainability. | **7.0** |
+| **Travel** | 3 | 5 | 2 | 4 | Severe "stub" state; needs to inherit Trip Goals from Dashboard. | **3.5** |
 
 ## 7. Recommendations
+
+### Priority 1: Data & Integrity (Immediate)
 1. **Unify Balance Logic (High/Medium):** Create a canonical resolution layer for reward balances to fix the discrepancy between loyalty memberships and program totals.
-2. **Harden Sync (High/Small):** Fix the "empty result no-op" bug and key sync state by user ID.
-3. **E2E Expansion (High/Medium):** Prioritize Playwright tests for the Add/Edit card wizard.
-4. **Tokenize UI Colors (Low/Small):** Complete the migration of hardcoded hex colors to CSS variables.
-5. **Travel Tab Activation (Medium/Large):** Move trip goal management from the Dashboard to the Travel tab as per the Phase 10 roadmap.
+2. **Harden Sync (High/Small):** Fix the "empty result no-op" bug and key sync state by user ID to prevent device-level data poisoning.
+
+### Priority 2: UX & Information Architecture (Strategic)
+3. **Rehome Trip Goals (Medium/Medium):** Move management from Dashboard to Travel tab. Use Dashboard only for summary visualizations.
+4. **Transition to Bottom Sheets (Medium/Medium):** For mobile viewports, move away from center modals to platform-native bottom sheets for high-frequency actions like adding cards.
+5. **Strategy Explainability (Low/Small):** Add tooltips or "Rationale" expanders to recommendations to increase user trust and educational value.
+6. **"Achieved Early" Visualization (Low/Small):** Add a distinct visual state (e.g., pulsing icon) for cards where spend is met but bonus posting is pending.
+
+### Priority 3: Reliability & Maintenance (Ongoing)
+7. **E2E Expansion (High/Medium):** Prioritize Playwright tests for the Add/Edit card wizard and data destructive paths (reset/clear).
+8. **Tokenize UI Colors (Low/Small):** Complete the migration of hardcoded hex colors to CSS variables across secondary components.
 
 ## 8. Questions for the Team
 1. Is the `credit_cards` table in Supabase ready for the full Phase 12 migration?
