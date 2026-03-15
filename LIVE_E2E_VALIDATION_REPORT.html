@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CardVault Decision Tables</title>
+  <style>
+    :root {
+      --bg: #f5f2ea;
+      --paper: #fffdf8;
+      --ink: #1f2937;
+      --muted: #5f6b7a;
+      --line: #d8d1c2;
+      --accent: #0f766e;
+      --accent-soft: #dff4f1;
+      --header: #12343b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, #eee6d7 0%, var(--bg) 100%);
+    }
+    .page {
+      max-width: 980px;
+      margin: 32px auto 56px;
+      background: var(--paper);
+      padding: 48px 52px 64px;
+      box-shadow: 0 16px 60px rgba(18, 52, 59, 0.10);
+      border: 1px solid rgba(18, 52, 59, 0.08);
+    }
+    h1, h2, h3 {
+      color: var(--header);
+      page-break-after: avoid;
+    }
+    h1 {
+      font-size: 34px;
+      margin: 0 0 10px;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--accent);
+      letter-spacing: 0.01em;
+    }
+    h2 {
+      margin-top: 34px;
+      font-size: 24px;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+    }
+    h3 {
+      margin-top: 24px;
+      font-size: 18px;
+    }
+    p, li {
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    p {
+      margin: 10px 0;
+    }
+    ul {
+      margin: 8px 0 14px 22px;
+    }
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      background: #f1eee6;
+      border: 1px solid #e2dccd;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      font-size: 0.92em;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.1rem 0.42rem;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      border: 1px solid transparent;
+    }
+    .badge.green {
+      background: #e4f4ea;
+      color: #166534;
+      border-color: #b7ddc5;
+    }
+    .badge.yellow {
+      background: #fbf1cc;
+      color: #92400e;
+      border-color: #ead794;
+    }
+    .badge.red {
+      background: #f8d9d7;
+      color: #991b1b;
+      border-color: #e9b4af;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 18px;
+      page-break-inside: avoid;
+    }
+    thead th {
+      background: var(--accent-soft);
+      color: var(--header);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: top;
+      text-align: left;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    tbody tr:nth-child(even) td {
+      background: rgba(18, 52, 59, 0.03);
+    }
+    .meta {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 22px;
+    }
+    @media print {
+      body {
+        background: white;
+      }
+      .page {
+        margin: 0;
+        max-width: none;
+        box-shadow: none;
+        border: none;
+        padding: 0;
+      }
+      h2 {
+        page-break-after: avoid;
+      }
+      table, tr, td, th {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="meta">Prepared from the current local repository checkout at <code>/home/chris/cardvault</code>.</div>
+    <h1>CardVault Live E2E Validation Report</h1>
+
+<p>Prepared: 2026-03-15 UTC</p>
+
+<h2>Executive Summary</h2>
+
+<p>The live backend Playwright suite passed against the real application using the seeded admin account.</p>
+
+<p>Final result:</p>
+<ul>
+<li>4 of 4 live Playwright tests passed</li>
+<li>authentication worked against the real Supabase backend</li>
+<li>cards, rewards, alerts, strategy, settings access, and admin review queue were all browser-validated</li>
+</ul>
+
+<p>The most important product issue surfaced during live testing was not authentication or data integrity. It was a UX/control-flow issue:</p>
+<ul>
+<li>a blocking monthly <code>Quick check-in</code> modal appeared immediately after login and intercepted navigation until acknowledged</li>
+</ul>
+
+<p>That issue was real and reproducible. The live harness was updated to dismiss it so the rest of the suite could continue.</p>
+
+<h2>Environment</h2>
+
+<ul>
+<li>app under test: local dev server pointed at the live Supabase backend</li>
+<li>test account: seeded admin account with onboarding completed</li>
+<li>auth method: real email/password login</li>
+<li>browser runner: Playwright live config</li>
+</ul>
+
+<h2>Live Coverage Executed</h2>
+
+<h3>1. Auth</h3>
+
+<p>Validated:</p>
+<ul>
+<li>user can sign in with email/password</li>
+<li>signed-in user reaches the dashboard shell</li>
+</ul>
+
+<p>Spec:</p>
+<ul>
+<li>[auth-live.spec.ts](/home/chris/cardvault/tests/e2e/live/auth-live.spec.ts)</li>
+</ul>
+
+<h3>2. Cards</h3>
+
+<p>Validated:</p>
+<ul>
+<li>authenticated user can open the cards route</li>
+<li>cards search input renders</li>
+<li>cards filtering interaction works against live data</li>
+</ul>
+
+<p>Spec:</p>
+<ul>
+<li>[cards-live.spec.ts](/home/chris/cardvault/tests/e2e/live/cards-live.spec.ts)</li>
+</ul>
+
+<h3>3. Core Read-Only Shell</h3>
+
+<p>Validated:</p>
+<ul>
+<li>rewards route loads against live data</li>
+<li>alerts route loads</li>
+<li>strategy route loads</li>
+<li>settings modal opens from the user menu</li>
+</ul>
+
+<p>Spec:</p>
+<ul>
+<li>[shell-live.spec.ts](/home/chris/cardvault/tests/e2e/live/shell-live.spec.ts)</li>
+</ul>
+
+<h3>4. Admin</h3>
+
+<p>Validated:</p>
+<ul>
+<li>admin account can access the review queue</li>
+<li>admin route renders correctly behind the admin guard</li>
+</ul>
+
+<p>Spec:</p>
+<ul>
+<li>[admin-live.spec.ts](/home/chris/cardvault/tests/e2e/live/admin-live.spec.ts)</li>
+</ul>
+
+<h2>Outcome</h2>
+
+<h3>Passed</h3>
+
+<ul>
+<li>real auth works</li>
+<li>real protected routing works</li>
+<li>real cards page access works</li>
+<li>real rewards page access works</li>
+<li>real alerts page access works</li>
+<li>real strategy page access works</li>
+<li>real settings entry point works</li>
+<li>real admin gating works</li>
+</ul>
+
+<h3>Surfaced During Testing</h3>
+
+<p>#### 1. Blocking monthly balance check-in modal</p>
+
+<p>Status: <span class="badge yellow">YELLOW</span></p>
+
+<p>Observed behavior:</p>
+<ul>
+<li>after login, a modal titled <code>Quick check-in</code> appeared</li>
+<li>it blocked clicks on bottom navigation items until the user answered it</li>
+</ul>
+
+<p>Why it matters:</p>
+<ul>
+<li>this is a genuine user-flow interruption</li>
+<li>it can make the app feel stuck immediately after login</li>
+<li>it interferes with task-first navigation, especially for returning users</li>
+</ul>
+
+<p>Recommendation:</p>
+<ul>
+<li>consider making this non-blocking for returning users, or easier to defer</li>
+<li>if it must remain modal, ensure the recurrence cadence and dismissal behavior are intentional and clearly documented</li>
+</ul>
+
+<p>#### 2. Live route content is healthy enough for real browser validation</p>
+
+<p>Status: <span class="badge green">GREEN</span></p>
+
+<p>Observed behavior:</p>
+<ul>
+<li>once the blocking modal was acknowledged, the app shell behaved consistently</li>
+<li>live data rendered cleanly in cards, rewards, alerts, strategy, and admin surfaces</li>
+</ul>
+
+<p>Why it matters:</p>
+<ul>
+<li>this materially increases confidence that the app is not only locally renderable, but operational against the real backend</li>
+</ul>
+
+<h2>Test Infrastructure Improvements Made</h2>
+
+<p>To support the live run, the following test infrastructure was improved:</p>
+
+<ul>
+<li>magic-link support was added to the live helpers, though the supplied recovery-style link did not complete sign-in reliably</li>
+<li>email/password live auth remains the stable path</li>
+<li>a reusable live helper now dismisses the blocking <code>Quick check-in</code> modal when present</li>
+<li>an admin smoke test was added</li>
+</ul>
+
+<p>Files:</p>
+<ul>
+<li>[helpers.ts](/home/chris/cardvault/tests/e2e/live/helpers.ts)</li>
+<li>[admin-live.spec.ts](/home/chris/cardvault/tests/e2e/live/admin-live.spec.ts)</li>
+<li>[shell-live.spec.ts](/home/chris/cardvault/tests/e2e/live/shell-live.spec.ts)</li>
+<li>[LIVE_E2E_SETUP.md](/home/chris/cardvault/LIVE_E2E_SETUP.md)</li>
+</ul>
+
+<h2>Remaining Gaps</h2>
+
+<p>Even with the live suite passing, important live coverage is still missing:</p>
+
+<ul>
+<li>add/edit/delete card mutations</li>
+<li>rewards balance edits against live data</li>
+<li>import/export/reset flows</li>
+<li>trip-goal create/edit flows</li>
+<li>household create/invite/accept</li>
+<li>realtime/cloud-sync consistency across browser contexts</li>
+</ul>
+
+<h2>Bottom Line</h2>
+
+<p>The application now has a credible live-browser baseline.</p>
+
+<p>What is proven:</p>
+<ul>
+<li>real auth works</li>
+<li>real protected routes work</li>
+<li>real core product surfaces load</li>
+<li>real admin access works</li>
+</ul>
+
+<p>What still needs attention:</p>
+<ul>
+<li>the recurring <code>Quick check-in</code> modal is intrusive enough to block normal navigation</li>
+<li>the highest-risk live mutations and sync flows still need direct browser coverage</li>
+</ul>
+  </main>
+</body>
+</html>
