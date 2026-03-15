@@ -151,34 +151,53 @@
 
 <h2>Executive Summary</h2>
 
-<p>The live backend Playwright suite passed against the real application using the seeded admin account.</p>
+<p>The live browser audit now covers nine real-backend Playwright specs against the seeded admin account.</p>
 
-<p>Final result:</p>
+<p>Current outcome:</p>
 <ul>
-<li>4 of 4 live Playwright tests passed</li>
-<li>authentication worked against the real Supabase backend</li>
-<li>cards, rewards, alerts, strategy, settings access, and admin review queue were all browser-validated</li>
+<li>7 of 9 live specs passed</li>
+<li>2 of 9 live specs failed in ways that look like real product issues rather than harness problems</li>
 </ul>
 
-<p>The most important product issue surfaced during live testing was not authentication or data integrity. It was a UX/control-flow issue:</p>
+<p>What is validated:</p>
 <ul>
-<li>a blocking monthly <code>Quick check-in</code> modal appeared immediately after login and intercepted navigation until acknowledged</li>
+<li>real Supabase email/password auth works</li>
+<li>protected routing works</li>
+<li>core read-only surfaces load with live data</li>
+<li>card add/edit/delete works</li>
+<li>rewards balance edit/restore works</li>
+<li>export/reset/import backup flow works</li>
+<li>admin review queue access works</li>
 </ul>
 
-<p>That issue was real and reproducible. The live harness was updated to dismiss it so the rest of the suite could continue.</p>
+<p>What is not validated cleanly:</p>
+<ul>
+<li>household create/invite/delete flow</li>
+<li>cross-context rewards sync consistency</li>
+</ul>
+
+<p>Overall assessment:</p>
+<ul>
+<li>the app is on a usable foundation and does not need a restart</li>
+<li>the product is past the &quot;can it operate?&quot; stage and into the &quot;can users trust the state transitions?&quot; stage</li>
+<li>the highest-value work now is fixing sync, household lifecycle behavior, and blocking modal control flow</li>
+</ul>
 
 <h2>Environment</h2>
 
 <ul>
 <li>app under test: local dev server pointed at the live Supabase backend</li>
+<li>backend: live Supabase project</li>
 <li>test account: seeded admin account with onboarding completed</li>
 <li>auth method: real email/password login</li>
 <li>browser runner: Playwright live config</li>
 </ul>
 
-<h2>Live Coverage Executed</h2>
+<h2>Coverage Executed</h2>
 
-<h3>1. Auth</h3>
+<h3>Passed Live Specs</h3>
+
+<p>1. [auth-live.spec.ts](/home/chris/cardvault/tests/e2e/live/auth-live.spec.ts)</p>
 
 <p>Validated:</p>
 <ul>
@@ -186,157 +205,281 @@
 <li>signed-in user reaches the dashboard shell</li>
 </ul>
 
-<p>Spec:</p>
-<ul>
-<li>[auth-live.spec.ts](/home/chris/cardvault/tests/e2e/live/auth-live.spec.ts)</li>
-</ul>
-
-<h3>2. Cards</h3>
+<p>2. [cards-live.spec.ts](/home/chris/cardvault/tests/e2e/live/cards-live.spec.ts)</p>
 
 <p>Validated:</p>
 <ul>
-<li>authenticated user can open the cards route</li>
-<li>cards search input renders</li>
-<li>cards filtering interaction works against live data</li>
+<li>authenticated user can open cards</li>
+<li>search/filter interaction works against live data</li>
 </ul>
 
-<p>Spec:</p>
-<ul>
-<li>[cards-live.spec.ts](/home/chris/cardvault/tests/e2e/live/cards-live.spec.ts)</li>
-</ul>
-
-<h3>3. Core Read-Only Shell</h3>
+<p>3. [shell-live.spec.ts](/home/chris/cardvault/tests/e2e/live/shell-live.spec.ts)</p>
 
 <p>Validated:</p>
 <ul>
-<li>rewards route loads against live data</li>
+<li>rewards route loads</li>
 <li>alerts route loads</li>
 <li>strategy route loads</li>
 <li>settings modal opens from the user menu</li>
 </ul>
 
-<p>Spec:</p>
-<ul>
-<li>[shell-live.spec.ts](/home/chris/cardvault/tests/e2e/live/shell-live.spec.ts)</li>
-</ul>
-
-<h3>4. Admin</h3>
+<p>4. [admin-live.spec.ts](/home/chris/cardvault/tests/e2e/live/admin-live.spec.ts)</p>
 
 <p>Validated:</p>
 <ul>
-<li>admin account can access the review queue</li>
-<li>admin route renders correctly behind the admin guard</li>
+<li>admin review queue is reachable behind the admin guard</li>
 </ul>
 
-<p>Spec:</p>
+<p>5. [card-lifecycle-live.spec.ts](/home/chris/cardvault/tests/e2e/live/card-lifecycle-live.spec.ts)</p>
+
+<p>Validated:</p>
 <ul>
-<li>[admin-live.spec.ts](/home/chris/cardvault/tests/e2e/live/admin-live.spec.ts)</li>
+<li>user can add a real card from the catalog</li>
+<li>user can edit card metadata</li>
+<li>user can permanently delete the card</li>
 </ul>
 
-<h2>Outcome</h2>
+<p>6. [rewards-mutations-live.spec.ts](/home/chris/cardvault/tests/e2e/live/rewards-mutations-live.spec.ts)</p>
 
-<h3>Passed</h3>
-
+<p>Validated:</p>
 <ul>
-<li>real auth works</li>
-<li>real protected routing works</li>
-<li>real cards page access works</li>
-<li>real rewards page access works</li>
-<li>real alerts page access works</li>
-<li>real strategy page access works</li>
-<li>real settings entry point works</li>
-<li>real admin gating works</li>
+<li>user can change a live rewards balance</li>
+<li>edited value persists in-session</li>
+<li>original value can be restored cleanly</li>
 </ul>
 
-<h3>Surfaced During Testing</h3>
+<p>7. [settings-backup-live.spec.ts](/home/chris/cardvault/tests/e2e/live/settings-backup-live.spec.ts)</p>
 
-<p>#### 1. Blocking monthly balance check-in modal</p>
+<p>Validated:</p>
+<ul>
+<li>user can export account backup JSON</li>
+<li>reset-to-defaults executes</li>
+<li>import restores the exported dataset</li>
+<li>a temporary sentinel card added after export is removed by restore, which proves the import materially changed state</li>
+</ul>
+
+<h3>Failed Live Specs</h3>
+
+<p>8. [household-live.spec.ts](/home/chris/cardvault/tests/e2e/live/household-live.spec.ts)</p>
+
+<p>Observed failure:</p>
+<ul>
+<li>after submitting <code>Create &amp; Send Invite</code>, the newly created household name never becomes visible</li>
+<li>the test fails at the first post-submit assertion</li>
+</ul>
+
+<p>Why this looks real:</p>
+<ul>
+<li>the failure is stable</li>
+<li>it occurs after the form is filled and submitted, not during login or setup</li>
+<li>the expected record is simply not rendered afterward</li>
+</ul>
+
+<p>9. [sync-live.spec.ts](/home/chris/cardvault/tests/e2e/live/sync-live.spec.ts)</p>
+
+<p>Observed failure:</p>
+<ul>
+<li>context A updates <code>Chase UR</code> from <code>290.0K</code> to <code>290.3K</code></li>
+<li>context A reflects the new value</li>
+<li>after reload, context B still shows <code>290.0K</code></li>
+</ul>
+
+<p>Why this looks real:</p>
+<ul>
+<li>the mutation succeeds in the editing context</li>
+<li>the receiving context is explicitly reloaded</li>
+<li>the stale value remains visible after reload, which suggests sync or re-fetch inconsistency rather than flaky UI timing</li>
+</ul>
+
+<h2>Findings</h2>
+
+<h3>1. Live auth and core routing are healthy</h3>
+
+<p>Status: <span class="badge green">GREEN</span></p>
+
+<p>Evidence:</p>
+<ul>
+<li>real login succeeded repeatedly</li>
+<li>protected routes rendered consistently</li>
+<li>admin gating behaved correctly for the seeded admin account</li>
+</ul>
+
+<p>Why it matters:</p>
+<ul>
+<li>the app is operational against the real backend</li>
+<li>this lowers the risk that the project needs structural rework</li>
+</ul>
+
+<h3>2. Core mutations are stronger than expected</h3>
+
+<p>Status: <span class="badge green">GREEN</span></p>
+
+<p>Evidence:</p>
+<ul>
+<li>card lifecycle mutation passed end to end</li>
+<li>rewards balance edit/restore passed end to end</li>
+<li>backup export, reset, and restore passed end to end</li>
+</ul>
+
+<p>Why it matters:</p>
+<ul>
+<li>high-risk user actions are not universally broken</li>
+<li>the data model is sturdy enough to support repair work instead of restart work</li>
+</ul>
+
+<h3>3. Blocking prompts still interfere with ordinary use</h3>
 
 <p>Status: <span class="badge yellow">YELLOW</span></p>
 
 <p>Observed behavior:</p>
 <ul>
-<li>after login, a modal titled <code>Quick check-in</code> appeared</li>
-<li>it blocked clicks on bottom navigation items until the user answered it</li>
+<li>the monthly <code>Quick check-in</code> modal can intercept navigation immediately after login</li>
+<li>a SUB progress check-in can also appear during testing and needs dismissal</li>
 </ul>
 
 <p>Why it matters:</p>
 <ul>
-<li>this is a genuine user-flow interruption</li>
-<li>it can make the app feel stuck immediately after login</li>
-<li>it interferes with task-first navigation, especially for returning users</li>
+<li>this creates friction before the user starts their intended task</li>
+<li>it also makes automated and manual QA harder because navigation state becomes contingent on hidden cadence rules</li>
 </ul>
 
 <p>Recommendation:</p>
 <ul>
-<li>consider making this non-blocking for returning users, or easier to defer</li>
-<li>if it must remain modal, ensure the recurrence cadence and dismissal behavior are intentional and clearly documented</li>
+<li>allow defer/dismiss behavior that does not trap the session</li>
+<li>document recurrence rules and make them observable in settings or logs</li>
 </ul>
 
-<p>#### 2. Live route content is healthy enough for real browser validation</p>
+<h3>4. Household lifecycle is not trustworthy yet</h3>
 
-<p>Status: <span class="badge green">GREEN</span></p>
+<p>Status: <span class="badge red">RED</span></p>
 
 <p>Observed behavior:</p>
 <ul>
-<li>once the blocking modal was acknowledged, the app shell behaved consistently</li>
-<li>live data rendered cleanly in cards, rewards, alerts, strategy, and admin surfaces</li>
+<li>household creation did not produce a visible new household record after submission</li>
+<li>downstream invite-cancel and delete steps therefore never became testable</li>
 </ul>
 
 <p>Why it matters:</p>
 <ul>
-<li>this materially increases confidence that the app is not only locally renderable, but operational against the real backend</li>
+<li>this is not cosmetic; it blocks a full multi-user collaboration feature</li>
+<li>household state is foundational to sharing and sync assumptions elsewhere in the product</li>
+</ul>
+
+<p>Recommendation:</p>
+<ul>
+<li>instrument the create-household mutation and post-submit refresh path</li>
+<li>verify success toast, query invalidation, and rendered state all come from the same source of truth</li>
+<li>add server-asserted tests around household creation response payloads</li>
+</ul>
+
+<h3>5. Cross-context rewards sync is likely wrong today</h3>
+
+<p>Status: <span class="badge red">RED</span></p>
+
+<p>Observed behavior:</p>
+<ul>
+<li>a rewards edit committed in one browser context did not become visible in another context even after reload</li>
+</ul>
+
+<p>Why it matters:</p>
+<ul>
+<li>stale balances directly undermine trust in portfolio totals, recommendations, and transfer decisions</li>
+<li>this aligns with earlier code-review concern that cloud sync logic has edge cases around refresh and empty-state handling</li>
+</ul>
+
+<p>Recommendation:</p>
+<ul>
+<li>trace the rewards update path from mutation to invalidation to fetch to render</li>
+<li>verify whether the second context is reading stale local state, stale cache, or stale backend rows</li>
+<li>add a dedicated sync regression test that asserts exact before/after values across two contexts</li>
+</ul>
+
+<h2>Updated Coverage Assessment</h2>
+
+<p>What is now proven in live browser tests:</p>
+<ul>
+<li>auth</li>
+<li>protected navigation</li>
+<li>cards read flow</li>
+<li>rewards read flow</li>
+<li>alerts read flow</li>
+<li>strategy read flow</li>
+<li>settings entry</li>
+<li>admin review queue</li>
+<li>card create/edit/delete</li>
+<li>rewards edit/restore</li>
+<li>backup export/reset/import</li>
+</ul>
+
+<p>What remains unproven or failing:</p>
+<ul>
+<li>household create/invite/delete</li>
+<li>multi-context sync consistency</li>
+<li>trip goal mutation flows</li>
+<li>referral flows</li>
+<li>import/export behavior across larger and messier real datasets</li>
 </ul>
 
 <h2>Test Infrastructure Improvements Made</h2>
 
-<p>To support the live run, the following test infrastructure was improved:</p>
-
+<p>Supporting changes added during this audit:</p>
 <ul>
-<li>magic-link support was added to the live helpers, though the supplied recovery-style link did not complete sign-in reliably</li>
-<li>email/password live auth remains the stable path</li>
-<li>a reusable live helper now dismisses the blocking <code>Quick check-in</code> modal when present</li>
-<li>an admin smoke test was added</li>
+<li>live helpers support either magic-link or email/password auth, though email/password is the reliable path</li>
+<li>a reusable prompt dismissor handles <code>Quick check-in</code> and SUB check-in interruptions</li>
+<li>settings open/close helpers were hardened for modal-based flows</li>
+<li>new live specs were added for admin, card lifecycle, rewards mutation, backup/restore, household, and sync coverage</li>
 </ul>
 
 <p>Files:</p>
 <ul>
 <li>[helpers.ts](/home/chris/cardvault/tests/e2e/live/helpers.ts)</li>
 <li>[admin-live.spec.ts](/home/chris/cardvault/tests/e2e/live/admin-live.spec.ts)</li>
-<li>[shell-live.spec.ts](/home/chris/cardvault/tests/e2e/live/shell-live.spec.ts)</li>
+<li>[card-lifecycle-live.spec.ts](/home/chris/cardvault/tests/e2e/live/card-lifecycle-live.spec.ts)</li>
+<li>[rewards-mutations-live.spec.ts](/home/chris/cardvault/tests/e2e/live/rewards-mutations-live.spec.ts)</li>
+<li>[settings-backup-live.spec.ts](/home/chris/cardvault/tests/e2e/live/settings-backup-live.spec.ts)</li>
+<li>[household-live.spec.ts](/home/chris/cardvault/tests/e2e/live/household-live.spec.ts)</li>
+<li>[sync-live.spec.ts](/home/chris/cardvault/tests/e2e/live/sync-live.spec.ts)</li>
 <li>[LIVE_E2E_SETUP.md](/home/chris/cardvault/LIVE_E2E_SETUP.md)</li>
 </ul>
 
-<h2>Remaining Gaps</h2>
+<h2>Recommended Next Steps</h2>
 
-<p>Even with the live suite passing, important live coverage is still missing:</p>
-
+<p>1. Fix the rewards sync defect first.</p>
+<p>Reason:</p>
 <ul>
-<li>add/edit/delete card mutations</li>
-<li>rewards balance edits against live data</li>
-<li>import/export/reset flows</li>
-<li>trip-goal create/edit flows</li>
-<li>household create/invite/accept</li>
-<li>realtime/cloud-sync consistency across browser contexts</li>
+<li>it affects trust in user-visible numbers across sessions and devices</li>
+</ul>
+
+<p>2. Fix household create/render flow second.</p>
+<p>Reason:</p>
+<ul>
+<li>it blocks an entire collaboration feature set</li>
+</ul>
+
+<p>3. Soften or defer blocking check-in prompts.</p>
+<p>Reason:</p>
+<ul>
+<li>this improves first-minute usability and reduces QA friction</li>
+</ul>
+
+<p>4. Add one server-observed mutation audit layer.</p>
+<p>Reason:</p>
+<ul>
+<li>for household and sync failures, browser-only evidence is enough to flag the defect but not enough to isolate whether the break is in persistence, cache invalidation, or rendering</li>
 </ul>
 
 <h2>Bottom Line</h2>
 
-<p>The application now has a credible live-browser baseline.</p>
+<p>The live testing picture is better than the earlier code review suggested.</p>
 
-<p>What is proven:</p>
+<p>This is not a &quot;start over&quot; product. The app has a solid enough operational core to justify targeted fixes. The failing areas are specific and high-impact:</p>
 <ul>
-<li>real auth works</li>
-<li>real protected routes work</li>
-<li>real core product surfaces load</li>
-<li>real admin access works</li>
+<li>household lifecycle behavior</li>
+<li>cross-context rewards sync</li>
+<li>blocking modal cadence and control flow</li>
 </ul>
 
-<p>What still needs attention:</p>
-<ul>
-<li>the recurring <code>Quick check-in</code> modal is intrusive enough to block normal navigation</li>
-<li>the highest-risk live mutations and sync flows still need direct browser coverage</li>
-</ul>
+<p>That is a repair plan, not a rewrite plan.</p>
   </main>
 </body>
 </html>
