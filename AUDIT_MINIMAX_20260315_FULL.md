@@ -172,6 +172,49 @@ Based on router.tsx and page analysis:
 
 ---
 
+## 10. Live Site Test Results (2026-03-15)
+
+Tested against production at https://supabase.amplifypoints.com with credentials test@amplifypoints.com
+
+### Test Environment
+- **URL:** http://localhost:4173 (preview build with production Supabase)
+- **Supabase:** https://supabase.amplifypoints.com
+- **Test Account:** test@amplifypoints.com / AuditTest2026!
+
+### Results
+
+| Test Area | Result | Notes |
+|-----------|--------|-------|
+| **Authentication** | PASS | Login works, session persists |
+| **Dashboard** | PASS | Shows greeting, portfolio value ($20,555), card counts |
+| **Cards Tab** | PASS | Card list loads, filters work |
+| **Rewards Tab** | PASS | Portfolio, balance display works |
+| **Travel Tab** | **FAIL** | Confirmed stub - "Coming soon" |
+| **Strategy Tab** | PASS | 5/24 counter visible, recommendations work |
+| **Alerts Tab** | PASS | Alerts display with urgency indicators |
+| **Admin Page** | PASS | Accessible with admin role |
+| **Settings** | PARTIAL | Modal opens but content verification incomplete |
+
+### Console Errors Found
+
+1. **CloudSync Error (CRITICAL):**
+   ```
+   [CloudSync] Initial sync failed: {code: 22P02, details: null, hint: null,
+   message: invalid input syntax for type uuid: "chris-united-explorer"}
+   ```
+   - This is a UUID parsing error in cloud sync
+   - Appears on initial sync after login
+   - Does not block app functionality but indicates data corruption risk
+
+### New Findings from Live Testing
+
+| ID | Severity | Location | Issue |
+|----|----------|----------|-------|
+| F10 | HIGH | src/lib/cloudSync.ts | CloudSync UUID parsing error on initial sync with real data |
+| F11 | MEDIUM | src/pages/TravelPage.tsx | **CONFIRMED** - Travel tab is a non-functional stub in production |
+
+---
+
 ## Limitations Note
 
 This audit was performed primarily through **codebase analysis** due to constraints on live browser testing. The following were not verified live:
