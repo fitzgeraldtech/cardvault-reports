@@ -1,0 +1,941 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CardVault Decision Tables</title>
+  <style>
+    :root {
+      --bg: #f5f2ea;
+      --paper: #fffdf8;
+      --ink: #1f2937;
+      --muted: #5f6b7a;
+      --line: #d8d1c2;
+      --accent: #0f766e;
+      --accent-soft: #dff4f1;
+      --header: #12343b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, #eee6d7 0%, var(--bg) 100%);
+    }
+    .page {
+      max-width: 980px;
+      margin: 32px auto 56px;
+      background: var(--paper);
+      padding: 48px 52px 64px;
+      box-shadow: 0 16px 60px rgba(18, 52, 59, 0.10);
+      border: 1px solid rgba(18, 52, 59, 0.08);
+    }
+    h1, h2, h3 {
+      color: var(--header);
+      page-break-after: avoid;
+    }
+    h1 {
+      font-size: 34px;
+      margin: 0 0 10px;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--accent);
+      letter-spacing: 0.01em;
+    }
+    h2 {
+      margin-top: 34px;
+      font-size: 24px;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+    }
+    h3 {
+      margin-top: 24px;
+      font-size: 18px;
+    }
+    p, li {
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    p {
+      margin: 10px 0;
+    }
+    ul {
+      margin: 8px 0 14px 22px;
+    }
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      background: #f1eee6;
+      border: 1px solid #e2dccd;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      font-size: 0.92em;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 18px;
+      page-break-inside: avoid;
+    }
+    thead th {
+      background: var(--accent-soft);
+      color: var(--header);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: top;
+      text-align: left;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    tbody tr:nth-child(even) td {
+      background: rgba(18, 52, 59, 0.03);
+    }
+    .meta {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 22px;
+    }
+    @media print {
+      body {
+        background: white;
+      }
+      .page {
+        margin: 0;
+        max-width: none;
+        box-shadow: none;
+        border: none;
+        padding: 0;
+      }
+      h2 {
+        page-break-after: avoid;
+      }
+      table, tr, td, th {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="meta">Prepared from the current local repository checkout at <code>/home/chris/cardvault</code>.</div>
+    <h1>CardVault Decision Tables</h1>
+
+<p>This report is the compact version of the logic review.</p>
+
+<p>Format used in each section:</p>
+<ul>
+<li>Formula</li>
+<li>If</li>
+<li>Then</li>
+<li>Result</li>
+<li>Notes / risk</li>
+</ul>
+
+<h2>1. Date and Deadline Math</h2>
+
+<h3>1.1 Days remaining</h3>
+
+<p>Formula:</p>
+<p><code>days_remaining = target_date - today_in_calendar_days</code></p>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td><code>dateString</code> is empty</td><td>return sentinel</td><td><code>9999</code></td></tr>
+<tr><td><code>dateString</code> is invalid</td><td>return sentinel</td><td><code>9999</code></td></tr>
+<tr><td><code>dateString</code> is valid</td><td>parse ISO date and compare to today at local midnight</td><td>integer day count</td></tr>
+</tbody></table>
+
+<p>Interpretation:</p>
+
+<table>
+<thead><tr><th>If <code>days_remaining</code> is</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td><code>&lt; 0</code></td><td>treat as past due</td><td>deadline already passed</td></tr>
+<tr><td><code>= 0</code></td><td>treat as current</td><td>due today</td></tr>
+<tr><td><code>&gt; 0</code></td><td>treat as future</td><td>due in X days</td></tr>
+<tr><td><code>= 9999</code></td><td>treat as no usable deadline</td><td>ignored by many deadline-driven rules</td></tr>
+</tbody></table>
+
+<h3>1.2 Relative label formatting</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td><code>days &gt;= 9999</code></td><td>show no date</td><td><code>None</code></td></tr>
+<tr><td><code>days &lt; 0</code></td><td>show elapsed time</td><td><code>X days ago</code></td></tr>
+<tr><td><code>days = 0</code></td><td>show same-day label</td><td><code>Today</code></td></tr>
+<tr><td><code>days = 1</code></td><td>show next-day label</td><td><code>Tomorrow</code></td></tr>
+<tr><td><code>2 &lt;= days &lt;= 30</code></td><td>show days</td><td><code>in X days</code></td></tr>
+<tr><td><code>31 &lt;= days &lt;= 60</code></td><td>convert to weeks using <code>floor(days / 7)</code></td><td><code>in X weeks</code></td></tr>
+<tr><td><code>days &gt; 60</code></td><td>convert to months using <code>floor(days / 30)</code></td><td><code>in X months</code></td></tr>
+</tbody></table>
+
+<h2>2. Dashboard Totals</h2>
+
+<p>Source logic:</p>
+<ul>
+<li>cards are filtered first</li>
+<li>reward balances are summed directly from <code>rewardPrograms</code></li>
+</ul>
+
+<h3>2.1 Active card counts</h3>
+
+<p>Formula:</p>
+<ul>
+<li><code>active_cards = cards where status = active</code></li>
+<li><code>total_cards = count(active_cards)</code></li>
+<li><code>chris_cards = count(active_cards where cardholder = Chris)</code></li>
+<li><code>vanessa_cards = count(active_cards where cardholder = Vanessa)</code></li>
+</ul>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td><code>card.status = active</code></td><td>include in active-card pool</td><td>counted</td></tr>
+<tr><td><code>card.status != active</code></td><td>exclude from active-card pool</td><td>not counted</td></tr>
+<tr><td>active card belongs to Chris</td><td>add <code>1</code> to Chris count</td><td>person total increases</td></tr>
+<tr><td>active card belongs to Vanessa</td><td>add <code>1</code> to Vanessa count</td><td>person total increases</td></tr>
+</tbody></table>
+
+<h3>2.2 Annual fee totals</h3>
+
+<p>Formula:</p>
+<ul>
+<li><code>total_annual_fees = sum(active_card.annualFee)</code></li>
+<li><code>chris_fees = sum(active_card.annualFee where cardholder = Chris)</code></li>
+<li><code>vanessa_fees = sum(active_card.annualFee where cardholder = Vanessa)</code></li>
+</ul>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>card is active</td><td>include <code>annualFee</code> in fee math</td><td>adds to total</td></tr>
+<tr><td>card is closed</td><td>exclude</td><td>no contribution</td></tr>
+</tbody></table>
+
+<h3>2.3 Total points</h3>
+
+<p>Formula:</p>
+<ul>
+<li><code>total_points = sum(reward_program.balance)</code></li>
+</ul>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>reward program exists</td><td>read its <code>balance</code></td><td>contributes to total</td></tr>
+<tr><td>reward program balance is <code>0</code></td><td>add zero</td><td>no effect</td></tr>
+</tbody></table>
+
+<p>Risk:</p>
+<ul>
+<li>this does not always match the transfer engine’s loyalty-membership rules</li>
+</ul>
+
+<h3>2.4 Portfolio value</h3>
+
+<p>Formulas:</p>
+<ul>
+<li><code>portfolio_value_min = sum(balance * conservative_cpp) / 100</code></li>
+<li><code>portfolio_value_max = sum(balance * optimistic_cpp) / 100</code></li>
+<li>where:</li>
+<li><code>conservative_cpp = conservativeCpp ?? cppRange[0]</code></li>
+<li><code>optimistic_cpp = optimisticCpp ?? cppRange[1]</code></li>
+</ul>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>program has explicit <code>conservativeCpp</code></td><td>use it</td><td>lower-bound valuation input</td></tr>
+<tr><td>program lacks explicit <code>conservativeCpp</code></td><td>use <code>cppRange[0]</code></td><td>lower-bound fallback</td></tr>
+<tr><td>program has explicit <code>optimisticCpp</code></td><td>use it</td><td>upper-bound valuation input</td></tr>
+<tr><td>program lacks explicit <code>optimisticCpp</code></td><td>use <code>cppRange[1]</code></td><td>upper-bound fallback</td></tr>
+</tbody></table>
+
+<p>Result:</p>
+<ul>
+<li>value is represented in dollars after dividing cents-per-point by <code>100</code></li>
+</ul>
+
+<h3>2.5 Cards needing action</h3>
+
+<p>Formula:</p>
+<ul>
+<li>count card if:</li>
+<li><code>status != closed</code></li>
+<li>and (<code>days_to_fee &lt;= 60</code> or <code>keepCancelStatus = cancel</code>)</li>
+</ul>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>card is closed</td><td>exclude</td><td>no action count</td></tr>
+<tr><td>card is active and fee date &lt;= 60 days</td><td>include</td><td>action count +1</td></tr>
+<tr><td>card is active and marked cancel</td><td>include</td><td>action count +1</td></tr>
+<tr><td>both are true</td><td>still one card</td><td>count +1</td></tr>
+</tbody></table>
+
+<h3>2.6 Upcoming fees</h3>
+
+<p>Formula:</p>
+<ul>
+<li>include cards where:</li>
+<li><code>annualFee &gt; 0</code></li>
+<li><code>days_to_fee &lt;= 120</code></li>
+<li>sort ascending by <code>days_to_fee</code></li>
+</ul>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>annual fee is <code>0</code></td><td>exclude</td><td>not upcoming</td></tr>
+<tr><td>annual fee &gt; <code>0</code> and due within 120 days</td><td>include</td><td>appears in upcoming-fee list</td></tr>
+<tr><td>annual fee &gt; <code>0</code> and due after 120 days</td><td>exclude from this list</td><td>no row shown</td></tr>
+</tbody></table>
+
+<h3>2.7 Fees due in next 12 months</h3>
+
+<p>Formula:</p>
+<ul>
+<li><code>upcoming_fees_12m = sum(annualFee for active cards where 0 &lt;= days_to_fee &lt;= 365)</code></li>
+</ul>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>card is active and fee is due within 0 to 365 days</td><td>include fee amount</td><td>adds to 12-month forecast</td></tr>
+<tr><td>fee date already passed</td><td>exclude</td><td>not counted</td></tr>
+<tr><td>fee date beyond 365 days</td><td>exclude</td><td>not counted</td></tr>
+</tbody></table>
+
+<h3>2.8 Lifetime signup bonus value</h3>
+
+<p>Formula:</p>
+<ul>
+<li><code>lifetime_signup_bonus_value = sum(enrollBonusValue ?? 0 for active cards)</code></li>
+</ul>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>active card has <code>enrollBonusValue</code></td><td>include value</td><td>total increases</td></tr>
+<tr><td>active card has no <code>enrollBonusValue</code></td><td>use <code>0</code></td><td>no effect</td></tr>
+<tr><td>card is closed</td><td>exclude</td><td>no contribution</td></tr>
+</tbody></table>
+
+<h2>3. Alert Engine</h2>
+
+<h3>3.1 Severity</h3>
+
+<p>Formula:</p>
+<ul>
+<li>if <code>days &lt; 60</code> -&gt; red</li>
+<li>else if <code>days &lt;= 120</code> -&gt; amber</li>
+<li>else -&gt; green</li>
+</ul>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td><code>days &lt; 60</code></td><td>mark urgent</td><td><code>red</code></td></tr>
+<tr><td><code>60 &lt;= days &lt;= 120</code></td><td>mark medium urgency</td><td><code>amber</code></td></tr>
+<tr><td><code>days &gt; 120</code></td><td>mark low urgency</td><td><code>green</code></td></tr>
+</tbody></table>
+
+<h3>3.2 Annual fee alert</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td><code>annualFee &gt; 0</code> and <code>nextFeeDate</code> exists</td><td>create alert</td><td><code>annual_fee</code> alert</td></tr>
+<tr><td><code>annualFee = 0</code></td><td>do not create alert</td><td>none</td></tr>
+<tr><td><code>nextFeeDate</code> missing</td><td>do not create alert</td><td>none</td></tr>
+</tbody></table>
+
+<p>Formula shown in alert:</p>
+<ul>
+<li>description uses <code>formatCurrency(annualFee)</code></li>
+</ul>
+
+<h3>3.3 Cancel deadline alert</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>card is active and <code>keepCancelStatus = cancel</code></td><td>create cancel alert</td><td><code>cancel_deadline</code></td></tr>
+<tr><td>card is closed</td><td>do not create cancel alert</td><td>none</td></tr>
+<tr><td>card is active and not marked cancel</td><td>do not create cancel alert</td><td>none</td></tr>
+</tbody></table>
+
+<p>Message branch:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td><code>annualFee &gt; 0</code></td><td>use fee-sensitive wording</td><td><code>Cancel before annual fee posts</code></td></tr>
+<tr><td><code>annualFee = 0</code></td><td>use generic wording</td><td><code>Marked for cancellation</code></td></tr>
+</tbody></table>
+
+<h3>3.4 Welcome bonus deadline alert</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>card is active, <code>subStatus</code> in active list, and <code>subDeadlineDate</code> exists</td><td>create alert</td><td><code>bonus_deadline</code></td></tr>
+<tr><td><code>subStatus</code> is terminal like <code>achieved</code> or <code>missed</code></td><td>do not create alert</td><td>none</td></tr>
+<tr><td>card is closed</td><td>do not create alert</td><td>none</td></tr>
+</tbody></table>
+
+<p>Active SUB list:</p>
+<ul>
+<li><code>targeting</code></li>
+<li><code>on_track</code></li>
+<li><code>not_sure</code></li>
+<li><code>worried</code></li>
+</ul>
+
+<p>Description formula:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td><code>subSpendRequirement</code> exists</td><td>build spend/earn message</td><td><code>Spend $X to earn Y points</code></td></tr>
+<tr><td><code>subSpendRequirement</code> missing</td><td>use generic prompt</td><td><code>Complete welcome bonus spend requirement</code></td></tr>
+</tbody></table>
+
+<h3>3.5 First-year fee waiver expiry</h3>
+
+<p>Formula for first charge date:</p>
+<ul>
+<li><code>first_charge_date = annualFeeFirstChargeDate</code></li>
+<li>else <code>first_charge_date = dateOpened + 1 year</code></li>
+</ul>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td><code>annualFeeWaivedYear1 = true</code> and <code>annualFee &gt; 0</code></td><td>evaluate fee-waiver rule</td><td>possible alert</td></tr>
+<tr><td>explicit <code>annualFeeFirstChargeDate</code> exists</td><td>use explicit date</td><td>basis for countdown</td></tr>
+<tr><td>explicit charge date missing but valid <code>dateOpened</code> exists</td><td>use <code>dateOpened + 1 year</code></td><td>fallback countdown</td></tr>
+<tr><td><code>0 &lt;= days_to_first_charge &lt;= 45</code></td><td>create alert</td><td><code>fee_waiver_expiry</code></td></tr>
+<tr><td>outside that range</td><td>do not create alert</td><td>none</td></tr>
+</tbody></table>
+
+<h2>4. Recommendation Engine</h2>
+
+<h3>4.1 High-fee keep warning</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td><code>annualFee &gt; 400</code> and <code>keepCancelStatus = keep</code></td><td>create review recommendation</td><td><code>Consider canceling</code></td></tr>
+<tr><td>fee &lt;= 400</td><td>no recommendation from this rule</td><td>none</td></tr>
+<tr><td>marked cancel already</td><td>no recommendation from this rule</td><td>none</td></tr>
+</tbody></table>
+
+<h3>4.2 Cancel-action recommendation</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td><code>keepCancelStatus = cancel</code></td><td>create cancel-action recommendation</td><td>action required</td></tr>
+<tr><td>not marked cancel</td><td>none from this rule</td><td>none</td></tr>
+</tbody></table>
+
+<p>Message branch:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td><code>days_remaining &gt;= 9999</code></td><td>no reliable deadline</td><td><code>No fee date set.</code></td></tr>
+<tr><td><code>days_remaining &gt; 0</code></td><td>warn about future deadline</td><td><code>Cancel within X days</code></td></tr>
+<tr><td><code>days_remaining &lt;= 0</code></td><td>warn that fee may already have posted</td><td>past-due wording</td></tr>
+</tbody></table>
+
+<h3>4.3 Chase 5/24 status</h3>
+
+<p>Formula:</p>
+<ul>
+<li><code>cutoff = today - 24 months</code></li>
+<li>count cards where:</li>
+<li><code>dateOpened</code> is valid</li>
+<li><code>dateOpened &gt; cutoff</code></li>
+<li><code>cardType != authorized_user</code></li>
+</ul>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>card opened in last 24 months and not AU</td><td>count it</td><td>5/24 count +1</td></tr>
+<tr><td>AU card</td><td>exclude</td><td>does not affect count</td></tr>
+<tr><td>invalid or missing open date</td><td>exclude</td><td>does not affect count</td></tr>
+<tr><td>count &gt;= 4</td><td>create recommendation</td><td>Chase warning shown</td></tr>
+<tr><td>count = 4</td><td>warning says approaching 5/24</td><td>caution</td></tr>
+<tr><td>count &gt;= 5</td><td>warning says at 5/24</td><td>wait on Chase</td></tr>
+</tbody></table>
+
+<h3>4.4 Companion Pass</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>recommendation engine runs</td><td>append generic companion-pass recommendation</td><td>always present</td></tr>
+</tbody></table>
+
+<p>Risk:</p>
+<ul>
+<li>this is not conditional logic</li>
+<li>it behaves more like static guidance than computed advice</li>
+</ul>
+
+<h2>5. Chase Freedom Auto-Reclassification</h2>
+
+<h3>Rule</h3>
+
+<p>Formula:</p>
+<ul>
+<li><code>has_sapphire = any active Chase card where cardName contains &quot;sapphire&quot;</code></li>
+<li><code>target_program = has_sapphire ? chase_ur : cashback</code></li>
+</ul>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>any active Chase Sapphire exists</td><td>Freedom cards become transferable points cards</td><td><code>rewardsProgram = chase_ur</code></td></tr>
+<tr><td>no active Chase Sapphire exists</td><td>Freedom cards revert to cashback classification</td><td><code>rewardsProgram = cashback</code></td></tr>
+</tbody></table>
+
+<p>A Freedom card is mutated only if:</p>
+<ul>
+<li>bank is Chase</li>
+<li>name contains <code>freedom</code></li>
+<li>existing program is either <code>chase_ur</code> or <code>cashback</code></li>
+<li>existing program differs from target</li>
+</ul>
+
+<h2>6. Application-Date and Eligibility Approximation</h2>
+
+<h3>6.1 Application date resolution</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>confidence = <code>exact</code> and exact date exists</td><td>use exact date</td><td>precise date</td></tr>
+<tr><td>confidence = <code>month</code> and month exists</td><td>use last day of that month</td><td>conservative date</td></tr>
+<tr><td>confidence = <code>year</code> and year exists</td><td>use Dec 31 of that year</td><td>conservative date</td></tr>
+<tr><td>confidence = <code>unknown</code> or data missing</td><td>return null</td><td>eligibility uncertain</td></tr>
+</tbody></table>
+
+<h3>6.2 Estimated SUB receipt date</h3>
+
+<p>Formula:</p>
+<ul>
+<li><code>base_date = approvalDate ?? dateOpened</code></li>
+<li><code>estimated_sub_received = base_date + subDeadlineMonths + 30 days</code></li>
+</ul>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>base date exists and <code>subDeadlineMonths</code> exists</td><td>compute estimate</td><td>approximate receipt date</td></tr>
+<tr><td>base date missing</td><td>cannot compute</td><td><code>null</code></td></tr>
+<tr><td>deadline months missing</td><td>cannot compute</td><td><code>null</code></td></tr>
+</tbody></table>
+
+<h3>6.3 Issuer reapplication rules</h3>
+
+<p>Hardcoded rule table:</p>
+
+<table>
+<thead><tr><th>Issuer</th><th>Rule</th></tr></thead>
+<tbody>
+<tr><td>Chase</td><td>48 months from SUB received</td></tr>
+<tr><td>American Express</td><td>lifetime</td></tr>
+<tr><td>Citi</td><td>24 months</td></tr>
+<tr><td>Capital One</td><td>6 months</td></tr>
+<tr><td>Bank of America</td><td>none documented</td></tr>
+<tr><td>Barclays</td><td>24 months</td></tr>
+<tr><td>Wells Fargo</td><td>none documented</td></tr>
+</tbody></table>
+
+<p>Risk:</p>
+<ul>
+<li>this is static policy guidance, not live issuer terms</li>
+</ul>
+
+<h2>7. SUB Check-In Engine</h2>
+
+<h3>7.1 Check-in eligibility</h3>
+
+<p>A card enters the due-checkin pool if all are true:</p>
+<ul>
+<li><code>status = active</code></li>
+<li><code>subStatus</code> in:</li>
+<li><code>targeting</code></li>
+<li><code>on_track</code></li>
+<li><code>not_sure</code></li>
+<li><code>worried</code></li>
+<li><code>subDeadlineDate</code> exists</li>
+<li><code>days_remaining &gt;= 0</code></li>
+<li><code>isCheckinDue = true</code></li>
+</ul>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>card is closed</td><td>exclude</td><td>no check-in</td></tr>
+<tr><td>terminal SUB state</td><td>exclude</td><td>no check-in</td></tr>
+<tr><td>missing deadline</td><td>exclude</td><td>no check-in</td></tr>
+<tr><td>overdue deadline</td><td>exclude</td><td>no check-in</td></tr>
+<tr><td>active state and due</td><td>include</td><td>check-in prompt appears</td></tr>
+</tbody></table>
+
+<h3>7.2 Cadence logic</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If previous state is</th><th>Then cadence is</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>no prior record</td><td>immediate</td><td>due now</td></tr>
+<tr><td><code>targeting</code></td><td>30 days</td><td>next check-in after 30 days</td></tr>
+<tr><td><code>on_track</code></td><td><code>max(1, floor(days_to_deadline / 2))</code></td><td>adaptive cadence</td></tr>
+<tr><td><code>not_sure</code></td><td>7 days</td><td>weekly cadence</td></tr>
+<tr><td><code>worried</code></td><td>3 days</td><td>high-frequency cadence</td></tr>
+<tr><td><code>achieved</code>, <code>achieved_early</code>, <code>missed</code></td><td>stop</td><td>no more prompts</td></tr>
+</tbody></table>
+
+<h3>7.3 Dismiss and done actions</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>user dismisses with new state</td><td>write local record and update card <code>subStatus</code></td><td>queue advances</td></tr>
+<tr><td>user marks done</td><td>set local record to achieved, set <code>subReceived = true</code>, set receipt date</td><td>queue advances</td></tr>
+</tbody></table>
+
+<h2>8. Transfer and Reward Optimization</h2>
+
+<h3>8.1 Balance source-of-truth rule</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If program type is</th><th>Then use</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>loyalty-membership program</td><td><code>loyaltyMemberships[]</code></td><td>derived balances</td></tr>
+<tr><td>card-linked currency</td><td><code>RewardProgram.balance</code></td><td>household-level balance</td></tr>
+</tbody></table>
+
+<p>Risk:</p>
+<ul>
+<li>some non-transfer screens do not fully follow this split</li>
+</ul>
+
+<h3>8.2 Best transfer recommendation</h3>
+
+<p>For each source currency with positive balance:</p>
+
+<p>Formulas:</p>
+<ul>
+<li><code>dest_cpp = conservative or optimistic destination CPP</code></li>
+<li><code>effective_cpp = dest_cpp * (toMultiplier / fromMultiplier)</code></li>
+<li><code>cash_cpp = source conservative/optimistic CPP</code></li>
+<li><code>transfer_value = round(balance * effective_cpp / 100)</code></li>
+<li><code>cash_value = round(balance * cash_cpp / 100)</code></li>
+</ul>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>source program has <code>balance &gt; 0</code> and transfer routes</td><td>evaluate routes</td><td>candidate recommendations</td></tr>
+<tr><td>destination not found</td><td>skip route</td><td>no candidate</td></tr>
+<tr><td><code>effective_cpp &lt;= cash_cpp</code></td><td>reject route</td><td>not worth transferring</td></tr>
+<tr><td><code>effective_cpp &gt; cash_cpp</code></td><td>keep candidate</td><td>transfer beats cash-out</td></tr>
+<tr><td>multiple valid routes exist</td><td>keep highest <code>transfer_cpp</code></td><td>best route per source</td></tr>
+</tbody></table>
+
+<p>Final result:</p>
+<ul>
+<li>one best route per source currency</li>
+<li>sorted by highest <code>transfer_value</code></li>
+</ul>
+
+<h3>8.3 Household and person balances</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If filter is</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td><code>all</code></td><td>sum all loyalty memberships by program</td><td>total loyalty balance</td></tr>
+<tr><td><code>chris</code></td><td>sum Chris memberships only</td><td>Chris balance</td></tr>
+<tr><td><code>vanessa</code></td><td>sum Vanessa memberships only</td><td>Vanessa balance</td></tr>
+<tr><td>program is not a loyalty-membership program</td><td>use household <code>RewardProgram.balance</code></td><td>unsplit currency balance</td></tr>
+</tbody></table>
+
+<h3>8.4 Monthly portfolio snapshot</h3>
+
+<p>Formulas:</p>
+<ul>
+<li><code>loyalty_value = sum(loyalty_balance * cpp / 100)</code></li>
+<li><code>card_linked_value = sum(currency_balance * cpp / 100)</code></li>
+<li><code>total_value = round((loyalty_value + card_linked_value) * 100) / 100</code></li>
+</ul>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>snapshot for current month already exists</td><td>return unchanged</td><td>idempotent</td></tr>
+<tr><td>no current-month snapshot</td><td>compute value and insert</td><td>snapshot created</td></tr>
+<tr><td>more than 36 snapshots exist after insert</td><td>keep newest 36</td><td>capped history</td></tr>
+</tbody></table>
+
+<h3>8.5 Month-over-month delta</h3>
+
+<p>Formula:</p>
+<ul>
+<li><code>mom_delta = latest.totalValue - previous.totalValue</code></li>
+</ul>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>fewer than 2 snapshots</td><td>cannot compare</td><td><code>0</code></td></tr>
+<tr><td>at least 2 snapshots</td><td>subtract previous from current</td><td>delta value</td></tr>
+</tbody></table>
+
+<h3>8.6 Joint strategy rule</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If pooling type is</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td><code>native_pool</code></td><td>recommend household pooling</td><td>proactive strategy</td></tr>
+<tr><td><code>au_workaround</code></td><td>recommend AU-based combining</td><td>proactive strategy</td></tr>
+<tr><td><code>fee_transfer</code> and both people have memberships and combined &gt;= 100,000</td><td>use one primary saver</td><td><code>primary_saver</code></td></tr>
+<tr><td><code>fee_transfer</code> and both people have memberships and combined &lt; 100,000</td><td>save separately</td><td><code>parallel_savers</code></td></tr>
+<tr><td><code>fee_transfer</code> but one person missing</td><td>no strategy returned</td><td>none</td></tr>
+</tbody></table>
+
+<p>Formula:</p>
+<ul>
+<li><code>combined_balance = chris_balance + vanessa_balance</code></li>
+</ul>
+
+<h2>9. Referral Optimizer</h2>
+
+<h3>Rule</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>no referral and no public elevated offer</td><td>no comparison available</td><td><code>no_data</code></td></tr>
+<tr><td>referral exists and elevated does not</td><td>recommend referral</td><td><code>use_referral</code></td></tr>
+<tr><td>elevated exists and referral does not</td><td>recommend public offer</td><td><code>use_elevated_public</code></td></tr>
+<tr><td>both exist and <code>referralPoints &gt;= elevated.points</code></td><td>choose referral</td><td><code>use_referral</code></td></tr>
+<tr><td>both exist and <code>referralPoints &lt; elevated.points</code></td><td>choose elevated public offer</td><td><code>use_elevated_public</code></td></tr>
+</tbody></table>
+
+<p>Comparison formula:</p>
+<ul>
+<li>compares raw points only</li>
+</ul>
+
+<p>Risk:</p>
+<ul>
+<li>does not adjust for:</li>
+<li>spend requirement</li>
+<li>statement credits</li>
+<li>annual fee differences</li>
+<li>approval odds</li>
+</ul>
+
+<h2>10. Balance Gate</h2>
+
+<h3>10.1 Initial gate</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>user already has cards on this device</td><td>auto-ack gate</td><td>intro gate suppressed</td></tr>
+<tr><td>no cards and gate not acked</td><td>show gate</td><td>onboarding-style warning shown</td></tr>
+</tbody></table>
+
+<h3>10.2 Monthly check-in</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>gate acked and month not checked in</td><td>show monthly balance check</td><td>check-in modal visible</td></tr>
+<tr><td>month already checked in</td><td>suppress monthly prompt</td><td>no modal</td></tr>
+</tbody></table>
+
+<h3>10.3 Profile sync rule</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>profile says <code>carries_balance</code>, device has not synced that flag, and local disabled flag missing</td><td>set disabled + gate acked</td><td>restrictive mode enabled</td></tr>
+<tr><td>user later confirms paying in full</td><td>remove disabled flag</td><td>access restored</td></tr>
+<tr><td>user says need help</td><td>set disabled flag</td><td>restrictive mode enabled</td></tr>
+</tbody></table>
+
+<p>Risk:</p>
+<ul>
+<li>this is partly device-local behavior, not fully centralized</li>
+</ul>
+
+<h2>11. Cloud Sync Rules That Affect Calculations</h2>
+
+<h3>11.1 Scope selection</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>user has active household</td><td>sync in household scope</td><td>shared data</td></tr>
+<tr><td>user has no household</td><td>sync in individual scope</td><td>personal data</td></tr>
+</tbody></table>
+
+<h3>11.2 Initial sync</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>local <code>cloud-synced</code> flag is false</td><td>merge local and cloud</td><td>initial migration</td></tr>
+<tr><td>local <code>cloud-synced</code> flag is true</td><td>fetch cloud as source of truth</td><td>returning-device flow</td></tr>
+</tbody></table>
+
+<p>Risk:</p>
+<ul>
+<li>current flag is device-level, not user-level</li>
+</ul>
+
+<h3>11.3 Realtime suppression</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>app writes to cloud</td><td>suppress realtime for 2 seconds</td><td>avoids self-echo</td></tr>
+</tbody></table>
+
+<h3>11.4 Household migration</h3>
+
+<p>Decision table:</p>
+
+<table>
+<thead><tr><th>If</th><th>Then</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>scope changes individual -&gt; household</td><td>copy individual data to household and delete old individual rows</td><td>household becomes source</td></tr>
+<tr><td>scope changes household -&gt; individual</td><td>copy current local data to individual scope</td><td>personal scope restored</td></tr>
+</tbody></table>
+
+<h2>12. Priority Audit Checklist</h2>
+
+<p>If you are trying to validate a suspicious number, use this sequence:</p>
+
+<table>
+<thead><tr><th>If the number looks wrong</th><th>Then inspect</th><th>Result</th></tr></thead>
+<tbody>
+<tr><td>total points looks wrong</td><td>compare <code>RewardProgram.balance</code> vs <code>loyaltyMemberships</code></td><td>identify source mismatch</td></tr>
+<tr><td>valuation looks too high/low</td><td>inspect CPP assumptions</td><td>identify valuation input issue</td></tr>
+<tr><td>fee countdown looks wrong</td><td>inspect <code>nextFeeDate</code> and <code>calculateDaysRemaining</code> behavior</td><td>identify date issue</td></tr>
+<tr><td>recommendation looks too blunt</td><td>inspect hard thresholds</td><td>identify policy-style rule</td></tr>
+<tr><td>all totals seem off after edits or device change</td><td>inspect cloud sync state</td><td>identify stale-data issue</td></tr>
+</tbody></table>
+
+<h2>13. Executive Summary</h2>
+
+<p>The logic is mostly:</p>
+<ul>
+<li>sums</li>
+<li>thresholds</li>
+<li>date windows</li>
+<li>static valuation assumptions</li>
+<li>heuristic approximations</li>
+</ul>
+
+<p>The most likely causes of incorrect-feeling output are:</p>
+<ul>
+<li>stale synced data</li>
+<li>mixed balance sources</li>
+<li>static CPP assumptions</li>
+<li>inferred dates</li>
+<li>hardcoded thresholds being mistaken for precise optimization</li>
+</ul>
+  </main>
+</body>
+</html>
